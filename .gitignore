@@ -11,3 +11,5 @@ dist/
 *credentials*
 *secret*
 .DS_Store
+.impeccable/critique/
+.impeccable/live/
