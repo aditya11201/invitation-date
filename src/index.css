@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ink: #332c2f;
+    --ink-soft: #685b5f;
+    --paper: #f6f2ed;
+    --paper-deep: #ede3dc;
+    --rose: #a34e5d;
+    --lavender: #876d91;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--paper);
+  }
+
+  body {
+    position: relative;
+    min-width: 320px;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(214, 154, 153, 0.18), transparent 28rem),
+      radial-gradient(circle at 88% 28%, rgba(201, 183, 210, 0.2), transparent 32rem),
+      var(--paper);
+    color: var(--ink);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body::before {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    content: "";
+    opacity: 0.13;
+    background-image: radial-gradient(rgba(82, 44, 50, 0.24) 0.55px, transparent 0.55px);
+    background-size: 5px 5px;
+    mix-blend-mode: multiply;
+  }
+
+  ::selection {
+    color: #fffaf7;
+    background: var(--rose);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 4px;
+  }
+}
+
+/* Custom romantic smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rose);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #873f50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

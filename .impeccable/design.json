@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-19T00:00:00Z",
+  "title": "Design System: 3D Romantic Date Invitation",
+  "extensions": {
+    "colorMeta": {
+      "romantic-500": {
+        "role": "primary",
+        "displayName": "Muted Rose Ink",
+        "canonical": "#a34e5d",
+        "tonalRamp": ["#3b202c", "#542b3a", "#6e3547", "#873f50", "#a34e5d", "#bb6c71", "#d69a99", "#f0e7e2"]
+      },
+      "lavender-500": {
+        "role": "secondary",
+        "displayName": "Dusk Violet",
+        "canonical": "#876d91",
+        "tonalRamp": ["#3e3448", "#554662", "#6e5878", "#876d91", "#a58aac", "#c9b7d2", "#ded1e3", "#f8f5f8"]
+      },
+      "romantic-50": {
+        "role": "neutral",
+        "displayName": "Warm Ivory Field",
+        "canonical": "#f6f2ed",
+        "tonalRamp": ["#332c2f", "#685b5f", "#a34e5d", "#bb6c71", "#d69a99", "#e3c9c4", "#f0e7e2", "#f6f2ed"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Playfair Display", "purpose": "Scene titles and keepsake hierarchy." },
+      "handwriting": { "displayName": "Dancing Script", "purpose": "Personal greeting and intimate voice." },
+      "body": { "displayName": "Plus Jakarta Sans", "purpose": "Readable paragraphs, dates, and controls." }
+    },
+    "shadows": [
+      { "name": "paper-lift", "value": "0 18px 38px -14px rgba(96, 52, 57, 0.28)", "purpose": "Lift the letter and ticket from the page." },
+      { "name": "rose-glow", "value": "0 0 32px -12px rgba(163, 78, 93, 0.7)", "purpose": "Signal primary action feedback." }
+    ],
+    "motion": [
+      { "name": "soft-state", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default state transitions." },
+      { "name": "dramatic-reveal", "value": "600ms to 1200ms ease-out", "purpose": "Letter, celebration, and keepsake reveals." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Deep rose action with a tactile press and calm glow.",
+      "html": "<button class=\"ds-btn-primary\">Choose this date</button>",
+      "css": ".ds-btn-primary { background:#6e3547; color:#f6f2ed; padding:16px 32px; border:0; border-radius:9999px; font:700 0.7rem/1.2 'Plus Jakarta Sans',system-ui,sans-serif; letter-spacing:.12em; transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s; } .ds-btn-primary:hover { transform:translateY(-1px); box-shadow:0 0 32px -12px rgba(163,78,93,.7); } .ds-btn-primary:focus-visible { outline:2px solid #a34e5d; outline-offset:4px; } .ds-btn-primary:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Paper-outline secondary action for the playful No path.",
+      "html": "<button class=\"ds-btn-ghost\">Not yet</button>",
+      "css": ".ds-btn-ghost { background:#fcfbf7; color:#6e3547; padding:12px 24px; border:1px solid #d69a99; border-radius:9999px; font:700 0.7rem/1.2 'Plus Jakarta Sans',system-ui,sans-serif; letter-spacing:.08em; transition:background .22s,transform .22s; } .ds-btn-ghost:hover { background:#f0e7e2; } .ds-btn-ghost:focus-visible { outline:2px solid #a34e5d; outline-offset:4px; } .ds-btn-ghost:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Floating Navigation",
+      "kind": "nav",
+      "refersTo": "glass-navigation",
+      "description": "Minimal recipient rail with music and journey progress.",
+      "html": "<nav class=\"ds-nav\"><span>For Sassy</span><button aria-label=\"Play romantic music\">Music</button></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:10px 20px; background:rgba(252,251,247,.86); color:#332c2f; border-radius:9999px; box-shadow:0 18px 50px -24px rgba(82,44,50,.34); font:600 1rem/1.4 'Playfair Display',Georgia,serif; } .ds-nav button { min-height:44px; padding:8px 14px; border:0; border-radius:9999px; background:#f0e7e2; color:#6e3547; font:700 .7rem/1.2 'Plus Jakarta Sans',system-ui,sans-serif; letter-spacing:.1em; } .ds-nav button:focus-visible { outline:2px solid #a34e5d; outline-offset:4px; }"
+    },
+    {
+      "name": "Paper Letter",
+      "kind": "custom",
+      "refersTo": "paper-letter",
+      "description": "Layered stationery surface for the staged invitation copy.",
+      "html": "<article class=\"ds-letter\"><h2>For you, Sassy</h2><p>I made a little day for us.</p></article>",
+      "css": ".ds-letter { position:relative; padding:40px; background:#fcfbf7; color:#332c2f; border:1px solid #e3c9c4; border-radius:12px; box-shadow:0 18px 38px -14px rgba(96,52,57,.28); font:400 1rem/1.7 'Plus Jakarta Sans',system-ui,sans-serif; } .ds-letter h2 { margin:0 0 20px; color:#6e3547; font:700 clamp(2.5rem,8vw,5rem)/1.05 'Dancing Script',cursive; }"
+    },
+    {
+      "name": "Date Ticket",
+      "kind": "card",
+      "refersTo": "paper-letter",
+      "description": "A calm, printable keepsake that repeats the invitation material language.",
+      "html": "<article class=\"ds-ticket\"><span>Confirmed</span><strong>Date with Sassy</strong></article>",
+      "css": ".ds-ticket { padding:32px; background:#fcfbf7; color:#332c2f; border:1px solid #e3c9c4; border-radius:16px; box-shadow:0 24px 50px -16px rgba(96,52,57,.3); } .ds-ticket span { color:#6e3547; font:700 .7rem/1.2 'Plus Jakarta Sans',system-ui,sans-serif; letter-spacing:.12em; text-transform:uppercase; } .ds-ticket strong { display:block; margin-top:12px; font:700 1.5rem/1.2 'Playfair Display',Georgia,serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Private letter at dusk",
+    "overview": "This experience should feel like a personal letter discovered in a quiet room after sunset. The invitation is intimate before it is impressive. Paper, ink, soft shadow, and a small amount of atmosphere make the recipient feel that the whole journey was prepared for one person.",
+    "keyCharacteristics": [
+      "Personal stationery with visible paper layering.",
+      "Deep rose actions against an ivory field.",
+      "Muted violet used as atmosphere, not decoration everywhere.",
+      "Tactile controls with clear pressed and focused states.",
+      "Motion that builds anticipation, then settles gently."
+    ],
+    "rules": [
+      { "name": "The One-Accent Rule", "body": "Rose is the emotional signal. Violet supports depth, but must not compete with the primary action on the same surface.", "section": "colors" },
+      { "name": "The Letter Rule", "body": "Let the handwriting and serif carry personality. Never use display type for long instructions or date metadata.", "section": "typography" },
+      { "name": "The Quiet Field Rule", "body": "Most of the screen should remain calm so the current scene has somewhere to breathe.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do make the recipient's name and the handwritten greeting the first emotional signal.",
+      "Do use warm ivory, deep rose ink, and dusk violet consistently.",
+      "Do keep body copy readable with generous line-height and short measure.",
+      "Do use paper layering, rules, and shadow to explain depth.",
+      "Do preserve keyboard focus, 44px touch targets, reduced motion, and contrast.",
+      "Do let each scene have one visual hero instead of many competing cards."
+    ],
+    "donts": [
+      "Don't use generic SaaS dashboards, neon AI gradients, or interchangeable landing-page templates.",
+      "Don't use dense card grids, game-like confetti, or childish sticker collages.",
+      "Don't make decorative glass surfaces the default treatment.",
+      "Don't use gradient text, thick colored side stripes, or wide black shadows.",
+      "Don't repeat tiny uppercase eyebrows above every section.",
+      "Don't let violet compete with the rose action on the same surface."
+    ]
+  }
+}
