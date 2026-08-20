@@ -16,6 +16,7 @@ import {
   isActivePointer,
   isPrimaryPointerDown,
   isSealReady,
+  shouldUpdatePointerHover,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -281,6 +282,12 @@ test('matches pointer ownership only for the active pointer', () => {
   assert.equal(isActivePointer(drag, 7), true);
   assert.equal(isActivePointer(drag, 8), false);
   assert.equal(isActivePointer({ ...drag, isPointerDown: false }, 7), false);
+});
+
+test('updates hover for the active pointer or when no drag is active', () => {
+  assert.equal(shouldUpdatePointerHover({ isPointerDown: true, pointerId: 7 }, 7), true);
+  assert.equal(shouldUpdatePointerHover({ isPointerDown: true, pointerId: 7 }, 8), false);
+  assert.equal(shouldUpdatePointerHover({ isPointerDown: false, pointerId: null }, 8), true);
 });
 
 test('arms only for primary-button pointerdowns', () => {

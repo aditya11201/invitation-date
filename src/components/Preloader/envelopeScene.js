@@ -34,6 +34,10 @@ export function isActivePointer(drag, pointerId) {
   return drag.isPointerDown && drag.pointerId === pointerId;
 }
 
+export function shouldUpdatePointerHover(drag, pointerId) {
+  return !drag.isPointerDown || isActivePointer(drag, pointerId);
+}
+
 export function isPrimaryPointerDown(event) {
   return event?.button === 0 && event?.isPrimary !== false;
 }

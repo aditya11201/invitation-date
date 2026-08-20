@@ -15,6 +15,7 @@ import {
   isDragMovement,
   isSealReady,
   shouldActivateSeal,
+  shouldUpdatePointerHover,
 } from './envelopeScene.js';
 
 function drawCoverCanvas(context, canvas, { recipientName, senderName, year, headline, subtext }) {
@@ -343,27 +344,27 @@ export default function PreloaderCanvas({
       drag.dragMoved = false;
       drag.startedOnSeal = isSealReady(state) && isSealHit(event);
 
-      let pointerCaptureSucceeded = false;
       if (container.setPointerCapture) {
         try {
           container.setPointerCapture(event.pointerId);
-          pointerCaptureSucceeded = true;
         } catch {
-          // Use window listeners when pointer capture is unavailable
+          // Window fallback listeners cover unavailable pointer capture.
         }
       }
 
-      if (!pointerCaptureSucceeded) {
-        addFallbackPointerListeners();
-      }
+      addFallbackPointerListeners();
     };
 
     const handlePointerMove = (event) => {
+      if (!shouldUpdatePointerHover(drag, event.pointerId)) {
+        return;
+      }
+
       const nextPointer = getPointerPosition(event, container);
       mouse.targetX = nextPointer.x;
       mouse.targetY = nextPointer.y;
 
-      if (!drag.isPointerDown || (drag.pointerId !== null && drag.pointerId !== event.pointerId)) {
+      if (!drag.isPointerDown) {
         return;
       }
 
@@ -760,15 +761,12 @@ export default function PreloaderCanvas({
               <span>{year}</span>
             </div>
             <div className="preloader-canvas__fallback-flap" />
-            <button
-              type="button"
+            <div
               className="preloader-canvas__fallback-seal"
               onClick={() => callbacksRef.current.onSealActivate?.()}
-              tabIndex={-1}
-              aria-hidden="true"
             >
               ♥
-            </button>
+            </div>
           </div>
         </div>
       )}
