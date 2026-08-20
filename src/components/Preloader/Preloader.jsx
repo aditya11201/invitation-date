@@ -1,100 +1,128 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Heart, Sparkles } from 'lucide-react';
 import { sound } from '../../utils/sound';
+import { clampProgress, formatPreloaderCopy, getPreloaderPhase } from './preloaderStages.js';
+import PreloaderCanvas from './PreloaderCanvas';
+import './preloader.css';
 
-export default function Preloader({ onStart, recipientName }) {
+export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, recipientName, senderName, year }) {
   const [progress, setProgress] = useState(0);
-  const [isReady, setIsReady] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSealReady, setIsSealReady] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const startTimeoutRef = useRef(null);
+  const openedRef = useRef(false);
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    let current = 0;
-    const interval = setInterval(() => {
-      current += Math.floor(Math.random() * 15) + 10;
-      if (current >= 100) {
-        current = 100;
-        setProgress(100);
-        setIsReady(true);
-        clearInterval(interval);
-      } else {
-        setProgress(current);
-      }
-    }, 120);
-
-    return () => clearInterval(interval);
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotionPreference = () => setReducedMotion(mediaQuery.matches);
+    updateMotionPreference();
+    mediaQuery.addEventListener?.('change', updateMotionPreference);
+    return () => mediaQuery.removeEventListener?.('change', updateMotionPreference);
   }, []);
 
-  const handleEnter = () => {
+  useEffect(() => {
+    if (reducedMotion) {
+      setProgress(100);
+      setIsLoaded(true);
+      return undefined;
+    }
+
+    const startedAt = performance.now();
+    const duration = 3200;
+    let frameId = 0;
+    const updateProgress = (timestamp) => {
+      const nextProgress = clampProgress(((timestamp - startedAt) / duration) * 100);
+      setProgress(nextProgress);
+      if (nextProgress >= 100) {
+        setIsLoaded(true);
+        return;
+      }
+      frameId = requestAnimationFrame(updateProgress);
+    };
+
+    frameId = requestAnimationFrame(updateProgress);
+    return () => cancelAnimationFrame(frameId);
+  }, [reducedMotion]);
+
+  useEffect(() => () => clearTimeout(startTimeoutRef.current), []);
+
+  const displayName = recipientName || 'you';
+  const safeSenderName = senderName || 'someone special';
+  const values = useMemo(
+    () => ({ recipientName: displayName, senderName: safeSenderName, year }),
+    [displayName, safeSenderName, year],
+  );
+  const coverContent = useMemo(
+    () => ({
+      recipientName: displayName,
+      senderName: safeSenderName,
+      year,
+      headline: preloaderConfig.coverHeadline,
+      subtext: preloaderConfig.coverSubtext,
+    }),
+    [displayName, safeSenderName, year, preloaderConfig.coverHeadline, preloaderConfig.coverSubtext],
+  );
+  const phase = getPreloaderPhase(progress, preloaderConfig.phases);
+  const loadingMessage = formatPreloaderCopy(phase.message, values);
+  const format = (template) => formatPreloaderCopy(template, values);
+
+  const handleOpen = () => {
+    if (!isSealReady || isOpening || openedRef.current) return;
+    openedRef.current = true;
+    onAudioUnlock();
     sound.playPop(1.2);
     sound.playSparkle();
+    setIsOpening(true);
+  };
+
+  const handleOpenComplete = () => {
+    if (isFading || startedRef.current) return;
     setIsFading(true);
-    setTimeout(() => {
+    startTimeoutRef.current = window.setTimeout(() => {
+      if (startedRef.current) return;
+      startedRef.current = true;
       onStart();
-    }, 600);
+    }, reducedMotion ? 80 : 520);
   };
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-romantic-50 via-romantic-100 to-lavender-100 px-6 transition-opacity duration-700 ${
-        isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}
-    >
-      {/* Background Soft Glow Orbs */}
-      <div className="absolute w-72 h-72 rounded-full bg-romantic-300/30 blur-3xl animate-pulse" />
-      <div className="absolute w-64 h-64 rounded-full bg-lavender-300/30 blur-3xl translate-x-20 -translate-y-16 animate-pulse delay-700" />
-
-      {/* Floating 3D Heart Visual */}
-      <div className="relative mb-8 flex items-center justify-center">
-        <div className="absolute inset-0 scale-150 rounded-full bg-gradient-to-r from-pink-400/30 to-purple-400/30 blur-xl animate-pulseGlow" />
-        
-        <div className="relative animate-floatSlow text-romantic-500 drop-shadow-[0_15px_25px_rgba(236,72,153,0.4)]">
-          <svg className="w-24 h-24 sm:w-28 sm:h-28" viewBox="0 0 24 24" fill="url(#preloaderHeart)">
-            <defs>
-              <linearGradient id="preloaderHeart" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f472b6" />
-                <stop offset="50%" stopColor="#ec4899" />
-                <stop offset="100%" stopColor="#a855f7" />
-              </linearGradient>
-            </defs>
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-
-          {/* Mini Sparkles */}
-          <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-amber-300 animate-spin" style={{ animationDuration: '4s' }} />
-          <Heart className="absolute -bottom-1 -left-2 w-5 h-5 text-pink-300 fill-pink-300 animate-bounce" />
+    <section className={`preloader${isFading ? ' is-fading' : ''}`} aria-busy={!isSealReady}>
+      <div className="preloader__ambient preloader__ambient--rose" aria-hidden="true" />
+      <div className="preloader__ambient preloader__ambient--violet" aria-hidden="true" />
+      <div className="preloader__content">
+        <p className="preloader__eyebrow"><Sparkles aria-hidden="true" /><span>{format(preloaderConfig.badge)}</span></p>
+        <h1 className="preloader__title">{preloaderConfig.title}</h1>
+        <p className="preloader__dedication">for {displayName} 💗</p>
+        <div className="preloader__scene-stage">
+          <PreloaderCanvas
+            coverContent={coverContent}
+            isOpening={isOpening}
+            isReady={isLoaded}
+            onOpenComplete={handleOpenComplete}
+            onSealActivate={handleOpen}
+            onSealReady={() => setIsSealReady(true)}
+            reducedMotion={reducedMotion}
+          />
         </div>
-      </div>
-
-      {/* Title / Status */}
-      <h1 className="text-center font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 mb-2">
-        Preparing something special for you... 💗
-      </h1>
-      <p className="text-sm sm:text-base font-handwriting text-2xl text-romantic-600 mb-6">
-        for {recipientName || "my beautiful girl"}
-      </p>
-
-      {/* Progress Bar */}
-      <div className="w-full max-w-xs bg-white/60 backdrop-blur-md rounded-full p-1 border border-white/80 shadow-sm mb-6">
-        <div
-          className="h-2.5 rounded-full bg-gradient-to-r from-pink-400 via-rose-500 to-purple-500 transition-all duration-300 shadow-glow-pink"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      <span className="text-xs font-semibold text-slate-500 tabular-nums tracking-wider mb-6">
-        {progress}%
-      </span>
-
-      {/* Enter Button (Unlocked at 100%) */}
-      {isReady && (
-        <button
-          onClick={handleEnter}
-          className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 shadow-glow-pink hover:shadow-glow-lavender hover:scale-105 active:scale-95 transition-all duration-300 animate-heartPop focus:outline-none focus:ring-4 focus:ring-pink-300 cursor-pointer min-h-[44px]"
-        >
-          <span className="relative z-10 font-medium tracking-wide">Open My Invitation 💌</span>
-          <Heart className="w-5 h-5 fill-white transition-transform group-hover:scale-125" />
+        <div className="preloader__progress-panel">
+          <div className="preloader__progress-track" role="progressbar" aria-label="Preparing your invitation" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress} aria-valuetext={loadingMessage}>
+            <div className="preloader__progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="preloader__progress-meta">
+            <span className="preloader__progress-message" role="status" aria-live="polite">{loadingMessage}</span>
+            <span className="preloader__progress-value">{progress}%</span>
+          </div>
+        </div>
+        <p className="preloader__hint" aria-live="polite">{isSealReady ? preloaderConfig.sealHint : 'Preparing the seal...'}</p>
+        <button type="button" className="preloader__cta" onClick={handleOpen} disabled={!isSealReady || isOpening} aria-label={format(preloaderConfig.openLabel)}>
+          <span>{format(preloaderConfig.openLabel)}</span>
+          <Heart className="preloader__cta-icon" aria-hidden="true" />
         </button>
-      )}
-    </div>
+      </div>
+    </section>
   );
 }
