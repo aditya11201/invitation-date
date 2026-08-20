@@ -128,10 +128,18 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   sealMesh.rotation.x = Math.PI / 2;
   seal.add(sealMesh);
 
-  const relief = new THREE.Mesh(createHeartReliefGeometry(), reliefMaterial);
+  const reliefGeometry = createHeartReliefGeometry();
+
+  const relief = new THREE.Mesh(reliefGeometry, reliefMaterial);
   relief.name = 'preloader-envelope-seal-relief';
   relief.position.z = 0.05;
   seal.add(relief);
+
+  const reliefBack = new THREE.Mesh(reliefGeometry, reliefMaterial);
+  reliefBack.name = 'preloader-envelope-seal-relief-back';
+  reliefBack.position.z = -0.05;
+  reliefBack.rotation.y = Math.PI;
+  seal.add(reliefBack);
 
   topFlapPivot.add(seal);
   group.add(topFlapPivot);

@@ -83,3 +83,47 @@ test('disposes owned resources once without disposing the cover texture', () => 
   materials.forEach((material) => assert.equal(disposalCounts.get(material), 1));
   assert.equal(coverTextureDisposals, 0);
 });
+
+test('provides visible seal relief on both original and flipped facing states', () => {
+  const envelope = createEnvelopeScene();
+
+  // State 1: Original facing state (rotation.y = 0)
+  envelope.group.rotation.y = 0;
+  envelope.group.updateMatrixWorld(true);
+
+  const sealMeshWorldPos0 = new THREE.Vector3();
+  envelope.sealMesh.getWorldPosition(sealMeshWorldPos0);
+
+  const reliefMeshes = [];
+  envelope.seal.traverse((child) => {
+    if (child.isMesh && child !== envelope.sealMesh) {
+      reliefMeshes.push(child);
+    }
+  });
+
+  assert.ok(reliefMeshes.length >= 2, 'Expected front and back relief meshes');
+
+  const hasOriginalFacingRelief = reliefMeshes.some((mesh) => {
+    const pos = new THREE.Vector3();
+    mesh.getWorldPosition(pos);
+    return pos.z > sealMeshWorldPos0.z;
+  });
+  assert.ok(hasOriginalFacingRelief, 'Expected relief visible in front of seal disc at rotation.y = 0');
+
+  // State 2: Flipped facing state (rotation.y = Math.PI)
+  envelope.group.rotation.y = Math.PI;
+  envelope.group.updateMatrixWorld(true);
+
+  const sealMeshWorldPosFlipped = new THREE.Vector3();
+  envelope.sealMesh.getWorldPosition(sealMeshWorldPosFlipped);
+
+  const hasFlippedFacingRelief = reliefMeshes.some((mesh) => {
+    const pos = new THREE.Vector3();
+    mesh.getWorldPosition(pos);
+    return pos.z > sealMeshWorldPosFlipped.z;
+  });
+  assert.ok(hasFlippedFacingRelief, 'Expected relief visible in front of seal disc at rotation.y = Math.PI');
+
+  envelope.dispose();
+});
+
