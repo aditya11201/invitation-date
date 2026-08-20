@@ -30,6 +30,15 @@ export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
   };
 }
 
+export function clampPointerPosition(x, y) {
+  const safeX = typeof x === 'number' && Number.isFinite(x) ? x : 0;
+  const safeY = typeof y === 'number' && Number.isFinite(y) ? y : 0;
+  return new THREE.Vector2(
+    THREE.MathUtils.clamp(safeX, -1, 1),
+    THREE.MathUtils.clamp(safeY, -1, 1),
+  );
+}
+
 export function computeDragRotation({
   startYaw = 0,
   startPitch = 0,
@@ -43,8 +52,32 @@ export function computeDragRotation({
   return clampDragRotation(nextYaw, nextPitch, limits);
 }
 
+export function computeEnvelopeTargetRotation({
+  dragYaw = 0,
+  dragPitch = 0,
+  hoverX = 0,
+  hoverY = 0,
+  hoverYaw = 0.12,
+  hoverPitch = 0.08,
+  limits = ENVELOPE_DRAG_LIMITS,
+} = {}) {
+  return clampDragRotation(
+    dragYaw + hoverX * hoverYaw,
+    dragPitch + hoverY * hoverPitch,
+    limits,
+  );
+}
+
 export function isDragMovement(deltaX, deltaY, threshold = DRAG_THRESHOLD_PX) {
   return Math.hypot(deltaX, deltaY) > threshold;
+}
+
+export function shouldActivateSeal({
+  startedOnSeal = false,
+  releasedOnSeal = false,
+  dragMoved = false,
+} = {}) {
+  return startedOnSeal && releasedOnSeal && !dragMoved;
 }
 
 function createTriangleGeometry(base, height) {

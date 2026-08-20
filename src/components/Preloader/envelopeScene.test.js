@@ -8,7 +8,10 @@ import {
   DRAG_THRESHOLD_PX,
   clampDragRotation,
   computeDragRotation,
+  computeEnvelopeTargetRotation,
+  clampPointerPosition,
   isDragMovement,
+  shouldActivateSeal,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -229,4 +232,30 @@ test('isDragMovement distinguishes clicks from drag gestures via threshold', () 
   assert.equal(isDragMovement(DRAG_THRESHOLD_PX, 0), false);
   assert.equal(isDragMovement(0, DRAG_THRESHOLD_PX + 1), true);
   assert.equal(isDragMovement(10, 10), true);
+});
+
+test('clampPointerPosition keeps captured pointer coordinates inside normalized bounds', () => {
+  const position = clampPointerPosition(3.5, -4);
+
+  assert.equal(position.x, 1);
+  assert.equal(position.y, -1);
+});
+
+test('computeEnvelopeTargetRotation clamps the combined drag and hover rotation', () => {
+  const result = computeEnvelopeTargetRotation({
+    dragYaw: ENVELOPE_DRAG_LIMITS.maxYaw - 0.01,
+    dragPitch: ENVELOPE_DRAG_LIMITS.minPitch + 0.01,
+    hoverX: 1,
+    hoverY: -1,
+  });
+
+  assert.equal(result.yaw, ENVELOPE_DRAG_LIMITS.maxYaw);
+  assert.equal(result.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+});
+
+test('shouldActivateSeal requires a seal start, seal release, and no drag movement', () => {
+  assert.equal(shouldActivateSeal({ startedOnSeal: true, releasedOnSeal: true, dragMoved: false }), true);
+  assert.equal(shouldActivateSeal({ startedOnSeal: false, releasedOnSeal: true, dragMoved: false }), false);
+  assert.equal(shouldActivateSeal({ startedOnSeal: true, releasedOnSeal: false, dragMoved: false }), false);
+  assert.equal(shouldActivateSeal({ startedOnSeal: true, releasedOnSeal: true, dragMoved: true }), false);
 });
