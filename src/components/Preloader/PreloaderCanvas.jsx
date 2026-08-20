@@ -11,7 +11,9 @@ import {
   computeEnvelopeTargetRotation,
   ENVELOPE_OPEN_FINAL_STATE,
   isActivePointer,
+  isPrimaryPointerDown,
   isDragMovement,
+  isSealReady,
   shouldActivateSeal,
 } from './envelopeScene.js';
 
@@ -271,6 +273,8 @@ export default function PreloaderCanvas({
       startedOnSeal: false,
     };
     const clock = new THREE.Clock();
+    let fallbackPointerListenersAttached = false;
+    let removeFallbackPointerListeners = () => {};
     const resetDrag = () => {
       const activePointerId = drag.pointerId;
 
@@ -284,6 +288,7 @@ export default function PreloaderCanvas({
         }
       }
 
+      removeFallbackPointerListeners();
       drag.isPointerDown = false;
       drag.dragMoved = false;
       drag.pointerId = null;
@@ -325,7 +330,7 @@ export default function PreloaderCanvas({
     };
 
     const handlePointerDown = (event) => {
-      if (drag.isPointerDown || drag.pointerId !== null) {
+      if (!isPrimaryPointerDown(event) || drag.isPointerDown || drag.pointerId !== null) {
         return;
       }
 
@@ -336,14 +341,20 @@ export default function PreloaderCanvas({
       drag.startYaw = drag.yaw;
       drag.startPitch = drag.pitch;
       drag.dragMoved = false;
-      drag.startedOnSeal = isSealHit(event);
+      drag.startedOnSeal = isSealReady(state) && isSealHit(event);
 
+      let pointerCaptureSucceeded = false;
       if (container.setPointerCapture) {
         try {
           container.setPointerCapture(event.pointerId);
+          pointerCaptureSucceeded = true;
         } catch {
-          state.resetDrag();
+          // Use window listeners when pointer capture is unavailable
         }
+      }
+
+      if (!pointerCaptureSucceeded) {
+        addFallbackPointerListeners();
       }
     };
 
@@ -423,6 +434,26 @@ export default function PreloaderCanvas({
 
     const handleWindowBlur = () => {
       state.resetDrag();
+    };
+
+    const addFallbackPointerListeners = () => {
+      if (fallbackPointerListenersAttached) {
+        return;
+      }
+
+      window.addEventListener('pointerup', handlePointerUp, { passive: true });
+      window.addEventListener('pointercancel', handlePointerCancel, { passive: true });
+      fallbackPointerListenersAttached = true;
+    };
+
+    removeFallbackPointerListeners = () => {
+      if (!fallbackPointerListenersAttached) {
+        return;
+      }
+
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerCancel);
+      fallbackPointerListenersAttached = false;
     };
 
     const handleResize = () => {

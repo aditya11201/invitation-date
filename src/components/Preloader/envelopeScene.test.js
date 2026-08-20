@@ -14,6 +14,8 @@ import {
   shouldActivateSeal,
   ENVELOPE_OPEN_FINAL_STATE,
   isActivePointer,
+  isPrimaryPointerDown,
+  isSealReady,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -279,4 +281,16 @@ test('matches pointer ownership only for the active pointer', () => {
   assert.equal(isActivePointer(drag, 7), true);
   assert.equal(isActivePointer(drag, 8), false);
   assert.equal(isActivePointer({ ...drag, isPointerDown: false }, 7), false);
+});
+
+test('arms only for primary-button pointerdowns', () => {
+  assert.equal(isPrimaryPointerDown({ button: 0, isPrimary: true }), true);
+  assert.equal(isPrimaryPointerDown({ button: 1, isPrimary: true }), false);
+  assert.equal(isPrimaryPointerDown({ button: 0, isPrimary: false }), false);
+});
+
+test('records seal starts only after the scripted flip is complete', () => {
+  assert.equal(isSealReady({ flipComplete: true, didOpen: false }), true);
+  assert.equal(isSealReady({ flipComplete: false, didOpen: false }), false);
+  assert.equal(isSealReady({ flipComplete: true, didOpen: true }), false);
 });

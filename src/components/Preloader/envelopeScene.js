@@ -34,6 +34,14 @@ export function isActivePointer(drag, pointerId) {
   return drag.isPointerDown && drag.pointerId === pointerId;
 }
 
+export function isPrimaryPointerDown(event) {
+  return event?.button === 0 && event?.isPrimary !== false;
+}
+
+export function isSealReady({ flipComplete = false, didOpen = false } = {}) {
+  return Boolean(flipComplete && !didOpen);
+}
+
 export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
   const safeYaw = typeof yaw === 'number' && Number.isFinite(yaw) ? yaw : 0;
   const safePitch = typeof pitch === 'number' && Number.isFinite(pitch) ? pitch : 0;
