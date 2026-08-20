@@ -436,7 +436,7 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   const deepBodyMaterial = new THREE.MeshStandardMaterial({ color: palette.bodyDeep, roughness: 0.5, metalness: 0.04 });
   const liningMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.65 });
   const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.58 });
-  const frontMaterial = new THREE.MeshStandardMaterial({ color: palette.body, map: coverTexture, roughness: 0.45, metalness: 0.04 });
+  const frontMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coverTexture, roughness: 0.45, metalness: 0.04 });
   const waxMaterial = new THREE.MeshPhysicalMaterial({ color: palette.gold, roughness: 0.28, metalness: 0.15, clearcoat: 0.6, clearcoatRoughness: 0.2 });
   const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.45, metalness: 0.04 });
 
