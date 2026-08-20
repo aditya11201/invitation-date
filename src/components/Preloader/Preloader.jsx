@@ -151,7 +151,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
       {/* Accessible CTA Button for Keyboard and Screen Reader Navigation */}
       <button
         type="button"
-        className="preloader__cta sr-only focus:not-sr-only"
+        className="preloader__cta sr-only"
         onClick={handleOpen}
         disabled={!isSealReady || isOpening}
         aria-label={format(preloaderConfig.openLabel)}
