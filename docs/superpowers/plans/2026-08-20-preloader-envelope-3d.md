@@ -4,7 +4,7 @@
 
 **Goal:** Replace the current SVG-heart preloader with a procedural Three.js envelope scene inspired by `/mnt/c/Users/TiKi-TiKi/Documents/Dokumen Coding/My Github/invitation-web-app/test.html`, while preserving the existing invitation flow and audio handoff.
 
-**Architecture:** Keep `Preloader` as the React state coordinator and add one isolated `PreloaderCanvas` component for the local Three.js renderer. Keep geometry creation in a browser-independent `envelopeScene.js` module so its scene contract can be tested without a WebGL context. The preloader reveals a sealed envelope, flips to the wax seal after narrative progress reaches 100%, accepts both canvas-pointer and semantic-button activation, animates the flap, then calls the existing entry boundary exactly once.
+**Architecture:** Keep `Preloader` as the React state coordinator and add one isolated `PreloaderCanvas` component for the local Three.js renderer. Keep geometry creation in a browser-independent `envelopeScene.js` module so its scene contract can be tested without a WebGL context. The preloader reveals a sealed envelope, flips to the metallic-gold seal after narrative progress reaches 100%, accepts both canvas-pointer and semantic-button activation, animates the flap, then calls the existing entry boundary exactly once.
 
 **Tech Stack:** React 19, Vite 6, Three.js 0.174, GSAP 3.12, Tailwind CSS 3.4 tokens, existing Web Audio utility, Node built-in `node:test`.
 
@@ -46,7 +46,7 @@ src/main.jsx
 
 ### Reference translation
 
-The supplied `test.html` uses a standalone Three.js scene with a burgundy envelope body and flap hierarchy, a canvas-rendered cover/letter texture, directional/ambient/point lighting, a gold or rose wax seal, floating particles, a progress narrative that ends in a 180-degree envelope flip, and a seal interaction that opens the flap and transitions onward.
+The supplied `test.html` uses a standalone Three.js scene with a burgundy envelope body and flap hierarchy, a canvas-rendered cover/letter texture, directional/ambient/point lighting, a metallic-gold seal, floating particles, a progress narrative that ends in a 180-degree envelope flip, and a seal interaction that opens the flap and transitions onward.
 
 The implementation keeps the envelope, lighting, texture, progress narrative, and seal interaction. It does not copy the reference's game-like response buttons because the existing invitation already owns the later proposal interaction.
 
@@ -80,7 +80,7 @@ The implementation keeps the envelope, lighting, texture, progress narrative, an
 
 ## Acceptance Criteria
 
-1. The preloader displays a procedural 3D envelope with burgundy paper, ivory lining, rose wax, restrained gold foil, lighting, depth, and ambient particles.
+1. The preloader displays a procedural 3D envelope with burgundy paper, ivory lining, metallic-gold seal, restrained gold foil, lighting, depth, and ambient particles.
 2. The cover texture uses the configured recipient, sender, and calendar year instead of hardcoded reference identities.
 3. Narrative progress moves deterministically through four copy phases and exposes valid progress semantics.
 4. At 100%, the envelope flips to the seal side and exposes an accessible open action.
@@ -139,7 +139,7 @@ import {
 const phases = [
   { start: 0, key: 'crafting', message: 'Folding a little note...' },
   { start: 31, key: 'writing', message: 'Writing something just for {{recipientName}}...' },
-  { start: 66, key: 'sealing', message: 'Adding a touch of rose wax...' },
+  { start: 66, key: 'sealing', message: 'Adding a touch of golden wax...' },
   { start: 91, key: 'ready', message: 'Your invitation is ready.' },
 ];
 
@@ -244,7 +244,7 @@ In `src/config/config.js`, insert this `preloader` property immediately after `h
     phases: [
       { start: 0, key: "crafting", message: "Folding a little note..." },
       { start: 31, key: "writing", message: "Writing something just for {{recipientName}}..." },
-      { start: 66, key: "sealing", message: "Adding a touch of rose wax..." },
+      { start: 66, key: "sealing", message: "Adding a touch of golden wax..." },
       { start: 91, key: "ready", message: "Your invitation is ready." }
     ]
   },
@@ -375,7 +375,7 @@ const palette = Object.freeze({
   bodyDeep: 0x3b202c,
   lining: 0xf0e7e2,
   paper: 0xfcfbf7,
-  rose: 0xa34e5d,
+  gold: 0xf3ca7e,
 });
 
 export function getEnvelopeCameraDistance(viewportWidth) {
@@ -437,7 +437,7 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   const liningMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.65 });
   const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.58 });
   const frontMaterial = new THREE.MeshStandardMaterial({ color: palette.body, map: coverTexture, roughness: 0.45, metalness: 0.04 });
-  const waxMaterial = new THREE.MeshPhysicalMaterial({ color: palette.rose, roughness: 0.28, metalness: 0.15, clearcoat: 0.6, clearcoatRoughness: 0.2 });
+  const waxMaterial = new THREE.MeshPhysicalMaterial({ color: palette.gold, roughness: 0.28, metalness: 0.15, clearcoat: 0.6, clearcoatRoughness: 0.2 });
   const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.45, metalness: 0.04 });
 
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.3), liningMaterial);
@@ -1477,7 +1477,7 @@ git commit -m "feat: integrate interactive envelope preloader"
 Replace the current Scene 0 bullet in `README.md`:
 
 ```md
-1. **Scene 0 — 3D Preloader**: Procedural Three.js envelope with burgundy stationery, ivory lining, rose wax seal, narrative progress, and an entry gesture that unlocks audio autoplay.
+1. **Scene 0 — 3D Preloader**: Procedural Three.js envelope with burgundy stationery, ivory lining, metallic-gold seal, narrative progress, and an entry gesture that unlocks audio autoplay.
 ```
 
 Do not rewrite unrelated README sections.
@@ -1526,7 +1526,7 @@ Open the printed local URL so Vite asset paths and the production bundle are exe
 Check in order:
 
 1. The preloader covers the old global background while the local scene initializes.
-2. The envelope has visible depth, burgundy exterior, ivory paper, rose seal, warm foil, and subtle particles.
+2. The envelope has visible depth, burgundy exterior, ivory paper, metallic-gold seal, warm foil, and subtle particles.
 3. The cover reads the configured recipient and sender and uses `calendar.year`.
 4. Progress reaches 100% in approximately 3.2 seconds and changes to the ready phase.
 5. The envelope flips to its seal side before the CTA becomes enabled.
