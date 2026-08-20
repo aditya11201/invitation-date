@@ -100,6 +100,13 @@ export default function PreloaderCanvas({
   onSealActivate,
   onOpenComplete,
 }) {
+  const {
+    recipientName,
+    senderName,
+    year,
+    headline,
+    subtext,
+  } = coverContent;
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete });
@@ -140,12 +147,20 @@ export default function PreloaderCanvas({
       renderer.toneMappingExposure = 1.05;
       container.appendChild(renderer.domElement);
     } catch (error) {
+      if (renderer) {
+        renderer.dispose();
+
+        if (renderer.domElement?.parentNode) {
+          renderer.domElement.parentNode.removeChild(renderer.domElement);
+        }
+      }
+
       console.warn('Preloader WebGL unavailable; using static envelope fallback.', error);
       setWebGLAvailable(false);
       return undefined;
     }
 
-    const coverTexture = createCoverTexture(coverContent);
+    const coverTexture = createCoverTexture({ recipientName, senderName, year, headline, subtext });
     const envelope = createEnvelopeScene({ coverTexture });
     const dust = createDustField();
     scene.add(envelope.group);
@@ -181,7 +196,9 @@ export default function PreloaderCanvas({
       clock,
       frameId: 0,
       didFlip: false,
+      flipComplete: false,
       didOpen: false,
+      openComplete: false,
     };
     sceneRef.current = state;
 
@@ -192,7 +209,7 @@ export default function PreloaderCanvas({
     };
 
     const handlePointerUp = (event) => {
-      if (!state.didFlip || state.didOpen) {
+      if (!state.flipComplete || state.didOpen) {
         return;
       }
 
@@ -223,9 +240,11 @@ export default function PreloaderCanvas({
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
       if (!reducedMotionRef.current) {
-        envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
-        envelope.group.rotation.x = mouse.y * 0.08;
-        envelope.group.rotation.y += (mouse.x * 0.16 - envelope.group.rotation.y) * 0.03;
+        if (!state.didFlip && !state.didOpen) {
+          envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
+          envelope.group.rotation.x = mouse.y * 0.08;
+          envelope.group.rotation.y += (mouse.x * 0.16 - envelope.group.rotation.y) * 0.03;
+        }
         dust.points.rotation.y += 0.0007;
       }
 
@@ -248,6 +267,7 @@ export default function PreloaderCanvas({
         envelope.letterMesh.position,
       ]);
       envelope.dispose();
+      coverTexture.dispose();
       dust.geometry.dispose();
       dust.material.dispose();
       renderer.dispose();
@@ -258,7 +278,7 @@ export default function PreloaderCanvas({
 
       sceneRef.current = null;
     };
-  }, [coverContent]);
+  }, [recipientName, senderName, year, headline, subtext]);
 
   useEffect(() => {
     if (!webGLAvailable && isReady && !fallbackReadyRef.current) {
@@ -270,23 +290,36 @@ export default function PreloaderCanvas({
   useEffect(() => {
     const state = sceneRef.current;
 
-    if (!state || !isReady || state.didFlip) {
+    if (!state || !isReady || state.flipComplete) {
+      return undefined;
+    }
+
+    if (reducedMotion) {
+      state.didFlip = true;
+      state.envelope.group.rotation.y = Math.PI;
+      state.flipComplete = true;
+      callbacksRef.current.onSealReady();
+      return undefined;
+    }
+
+    if (state.didFlip) {
       return undefined;
     }
 
     state.didFlip = true;
 
-    if (reducedMotion) {
-      state.envelope.group.rotation.y = Math.PI;
-      callbacksRef.current.onSealReady();
-      return undefined;
-    }
-
     const tween = gsap.to(state.envelope.group.rotation, {
       y: Math.PI,
       duration: 1.2,
       ease: 'power2.inOut',
-      onComplete: () => callbacksRef.current.onSealReady(),
+      onComplete: () => {
+        if (state.flipComplete) {
+          return;
+        }
+
+        state.flipComplete = true;
+        callbacksRef.current.onSealReady();
+      },
     });
 
     return () => tween.kill();
@@ -307,22 +340,35 @@ export default function PreloaderCanvas({
       return undefined;
     }
 
+    if (state.openComplete) {
+      return undefined;
+    }
+
+    if (reducedMotion) {
+      state.didOpen = true;
+      state.envelope.topFlapPivot.rotation.x = -Math.PI * 0.95;
+      state.envelope.group.position.y = -0.8;
+      state.envelope.letterMesh.position.y = 1.2;
+      state.openComplete = true;
+      callbacksRef.current.onOpenComplete();
+      return undefined;
+    }
+
     if (state.didOpen) {
       return undefined;
     }
 
     state.didOpen = true;
 
-    if (reducedMotion) {
-      state.envelope.topFlapPivot.rotation.x = -Math.PI * 0.95;
-      state.envelope.group.position.y = -0.8;
-      state.envelope.letterMesh.position.y = 1.2;
-      callbacksRef.current.onOpenComplete();
-      return undefined;
-    }
-
     const timeline = gsap.timeline({
-      onComplete: () => callbacksRef.current.onOpenComplete(),
+      onComplete: () => {
+        if (state.openComplete) {
+          return;
+        }
+
+        state.openComplete = true;
+        callbacksRef.current.onOpenComplete();
+      },
     });
 
     timeline
@@ -341,9 +387,9 @@ export default function PreloaderCanvas({
         <div className="preloader-canvas__fallback">
           <div className="preloader-canvas__fallback-envelope">
             <div className="preloader-canvas__fallback-letter">
-              <span>To: {coverContent.recipientName || 'you'}</span>
-              <span>{coverContent.headline}</span>
-              <span>{coverContent.year}</span>
+              <span>To: {recipientName || 'you'}</span>
+              <span>{headline}</span>
+              <span>{year}</span>
             </div>
             <div className="preloader-canvas__fallback-flap" />
             <div className="preloader-canvas__fallback-seal">♥</div>
