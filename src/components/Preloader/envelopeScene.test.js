@@ -44,6 +44,7 @@ test('accepts a cover texture on the front stationery plane', () => {
   const front = envelope.group.getObjectByName('preloader-envelope-front');
 
   assert.equal(front.material.map, coverTexture);
+  assert.equal(front.material.color.getHex(), 0xffffff);
 
   envelope.dispose();
 });
