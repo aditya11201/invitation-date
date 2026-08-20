@@ -56,6 +56,10 @@ export default function App() {
   }, []);
 
   // Enter from preloader
+  const handleAudioUnlock = () => {
+    sound.setMuted(false, invitationConfig.audio?.backgroundMusic, invitationConfig.audio?.enableSynthesizerFallback);
+  };
+
   const handleStart = () => {
     setHasEntered(true);
     setMusicEnabled(true);
@@ -162,6 +166,7 @@ export default function App() {
       {!hasEntered && (
         <Preloader
           onStart={handleStart}
+          onAudioUnlock={handleAudioUnlock}
           recipientName={invitationConfig.recipientName}
         />
       )}
