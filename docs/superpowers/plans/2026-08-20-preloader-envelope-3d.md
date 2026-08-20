@@ -558,7 +558,7 @@ Run:
 npm test
 ```
 
-Expected: eight tests pass: four stage-helper tests and four envelope-scene tests.
+Expected: nine tests pass: four stage-helper tests and five envelope-scene tests.
 
 - [ ] **Step 6: Commit the tested scene graph**
 
@@ -967,7 +967,7 @@ npm test
 npm run build
 ```
 
-Expected: the contract command prints `GREEN: preloader canvas boundary confirmed`; eight unit tests pass; Vite exits with code `0`.
+Expected: the contract command prints `GREEN: preloader canvas boundary confirmed`; nine unit tests pass; Vite exits with code `0`.
 
 - [ ] **Step 4: Commit the isolated renderer**
 
@@ -1442,7 +1442,7 @@ npm test
 npm run build
 ```
 
-Expected: the contract command prints `GREEN: React preloader integration confirmed`; eight unit tests pass; Vite exits with code `0`.
+Expected: the contract command prints `GREEN: React preloader integration confirmed`; nine unit tests pass; Vite exits with code `0`.
 
 - [ ] **Step 7: Commit the React integration**
 
@@ -1490,7 +1490,7 @@ npm run build
 git diff --check
 ```
 
-Expected: eight tests pass, Vite writes `dist/index.html`, and `git diff --check` prints no errors.
+Expected: nine tests pass, Vite writes `dist/index.html`, and `git diff --check` prints no errors.
 
 - [ ] **Step 3: Verify the generated bundle has no reference CDN dependency**
 
