@@ -323,20 +323,21 @@ Text:
 
 Visual:
 
-- floating 3D heart
-- slow rotation
-- soft pink/lavender glow
-- subtle particles
+- layered CSS 3D burgundy envelope
+- ivory letter paper peeking from the pocket
+- gold foil border and progress rail
+- dimensional wax seal with a heart impression
+- slow floating tilt and muted rose/lavender atmosphere
 - percentage/progress indicator
 
-After critical assets finish loading:
+After the progress reaches 100%:
 
-1. the loading text disappears
-2. the heart moves away
-3. the camera moves into the main scene
-4. the Hero begins
+1. the status changes to `Your invitation is ready 💌`
+2. the wax seal and `Open My Invitation 💌` action become available
+3. clicking the action opens the flap and lifts the paper peek
+4. the preloader fades out and calls the existing `onStart()` boundary
 
-The preloader can also function as the first user interaction needed to enable audio in accordance with browser autoplay policies.
+The preloader remains the first user interaction needed to enable audio in accordance with browser autoplay policies. It must work without a separate WebGL renderer and must remain compatible with static GitHub Pages hosting.
 
 ---
 
