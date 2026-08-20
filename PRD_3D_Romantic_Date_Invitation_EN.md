@@ -328,7 +328,7 @@ Visual:
 - gold foil border and progress rail
 - dimensional wax seal with a heart impression
 - slow floating tilt and muted rose/lavender atmosphere
-- percentage/progress indicator
+- subtle percentage/progress indicator
 
 After the progress reaches 100%:
 
