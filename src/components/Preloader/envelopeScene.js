@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
 const palette = Object.freeze({
-  body: 0x6e3547,
-  bodyDeep: 0x3b202c,
+  body: 0x7a1126,
+  bodyDeep: 0x540a18,
   lining: 0xf0e7e2,
   paper: 0xfcfbf7,
-  rose: 0xa34e5d,
+  gold: 0xf3ca7e,
 });
 
 export function getEnvelopeCameraDistance(viewportWidth) {
@@ -66,13 +66,13 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   const group = new THREE.Group();
   group.name = 'preloader-envelope';
 
-  const bodyMaterial = new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.42, metalness: 0.08 });
-  const deepBodyMaterial = new THREE.MeshStandardMaterial({ color: palette.bodyDeep, roughness: 0.5, metalness: 0.04 });
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.4, metalness: 0.15 });
+  const deepBodyMaterial = new THREE.MeshStandardMaterial({ color: palette.bodyDeep, roughness: 0.5, metalness: 0.1 });
   const liningMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.65 });
   const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.58 });
-  const frontMaterial = new THREE.MeshStandardMaterial({ color: palette.body, map: coverTexture, roughness: 0.45, metalness: 0.04 });
-  const waxMaterial = new THREE.MeshPhysicalMaterial({ color: palette.rose, roughness: 0.28, metalness: 0.15, clearcoat: 0.6, clearcoatRoughness: 0.2 });
-  const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.45, metalness: 0.04 });
+  const frontMaterial = new THREE.MeshStandardMaterial({ color: palette.body, map: coverTexture, roughness: 0.4, metalness: 0.05 });
+  const waxMaterial = new THREE.MeshStandardMaterial({ color: palette.gold, roughness: 0.25, metalness: 0.85 });
+  const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.gold, roughness: 0.25, metalness: 0.85 });
 
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.3), liningMaterial);
   inner.name = 'preloader-envelope-inner';

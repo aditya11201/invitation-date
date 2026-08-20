@@ -8,38 +8,43 @@ import {
 
 function drawCoverCanvas(context, canvas, { recipientName, senderName, year, headline, subtext }) {
   const safeRecipient = recipientName || 'you';
-  const safeSender = senderName || 'someone special';
+  const safeSender = senderName || 'Your Secret Admirer';
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = '#6e3547';
+  context.fillStyle = '#7a1126';
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.strokeStyle = '#d4af37';
-  context.lineWidth = 12;
+
+  context.strokeStyle = '#f3ca7e';
+  context.lineWidth = 16;
   context.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
-  context.strokeStyle = 'rgba(252, 251, 247, 0.24)';
-  context.lineWidth = 3;
-  context.strokeRect(58, 58, canvas.width - 116, canvas.height - 116);
 
-  context.fillStyle = '#fcfbf7';
+  context.strokeStyle = 'rgba(243, 202, 126, 0.3)';
+  context.lineWidth = 4;
+  context.strokeRect(56, 56, canvas.width - 112, canvas.height - 112);
+
+  // Stamp & Postmark
+  context.fillStyle = '#f3ca7e';
+  context.fillRect(canvas.width - 280, 80, 200, 240);
+  context.fillStyle = '#7a1126';
+  context.font = "bold 40px 'Plus Jakarta Sans', sans-serif";
+  context.textAlign = 'center';
+  context.fillText('VIP PASS', canvas.width - 180, 180);
+  context.fillText(String(year || 2026), canvas.width - 180, 240);
+
+  // Addresses & Main Headline
+  context.fillStyle = '#fce8f3';
   context.textAlign = 'left';
-  context.font = 'italic 40px "Playfair Display", Georgia, serif';
-  context.fillText(`From: ${safeSender}`, 112, 168);
-  context.font = '700 52px "Playfair Display", Georgia, serif';
-  context.fillText(`To: ${safeRecipient}`, 112, 254);
+  context.font = "italic 44px 'Cormorant Garamond', Georgia, serif";
+  context.fillText(`FROM: ${safeSender}`, 100, 140);
+  context.font = "bold 64px 'Cormorant Garamond', Georgia, serif";
+  context.fillText(`TO: ${safeRecipient} ✨`, 100, 260);
 
-  context.fillStyle = '#f3e5ab';
-  context.font = '700 64px "Playfair Display", Georgia, serif';
-  context.fillText(headline, 112, 520);
-  context.fillStyle = '#f0e7e2';
-  context.font = 'italic 54px "Playfair Display", Georgia, serif';
-  context.fillText(subtext, 112, 592);
-
-  context.fillStyle = '#f3e5ab';
-  context.textAlign = 'right';
-  context.font = '700 30px "Plus Jakarta Sans", sans-serif';
-  context.fillText(String(year), canvas.width - 112, 168);
-  context.font = '700 24px "Plus Jakarta Sans", sans-serif';
-  context.fillText('PRIVATE DELIVERY', canvas.width - 112, 208);
+  context.fillStyle = '#f3ca7e';
+  context.font = "bold 68px 'Cormorant Garamond', Georgia, serif";
+  context.fillText(headline || 'A Sealed Secret', 100, 520);
+  context.fillStyle = '#ff75a0';
+  context.font = "italic 64px 'Cormorant Garamond', Georgia, serif";
+  context.fillText(subtext || 'is waiting for you...', 100, 620);
 }
 
 function createCoverTexture({ recipientName, senderName, year, headline, subtext, onUpdate }) {
@@ -82,21 +87,22 @@ function createCoverTexture({ recipientName, senderName, year, headline, subtext
 }
 
 function createDustField() {
-  const positions = new Float32Array(60 * 3);
+  const pCount = 90;
+  const positions = new Float32Array(pCount * 3);
 
   for (let index = 0; index < positions.length; index += 3) {
     positions[index] = THREE.MathUtils.randFloatSpread(14);
-    positions[index + 1] = THREE.MathUtils.randFloatSpread(10);
+    positions[index + 1] = THREE.MathUtils.randFloatSpread(12);
     positions[index + 2] = THREE.MathUtils.randFloatSpread(8);
   }
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const material = new THREE.PointsMaterial({
-    color: 0xd4af37,
-    size: 0.045,
+    color: 0xf3ca7e,
+    size: 0.06,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.7,
   });
 
   return {
@@ -118,11 +124,12 @@ function getPointerPosition(event, element) {
 function applyOpenFinalState(envelope, reducedMotion) {
   envelope.seal.scale.setScalar(reducedMotion ? 1 : 0.25);
   envelope.topFlapPivot.rotation.x = -Math.PI * 0.95;
-  envelope.group.position.y = -0.8;
-  envelope.letterMesh.position.y = reducedMotion ? 1.2 : 1.25;
+  envelope.group.position.y = -1.4;
+  envelope.letterMesh.position.y = 1.5;
 
   if (!reducedMotion) {
     envelope.letterMesh.position.z = -0.25;
+    envelope.letterMesh.scale.setScalar(1.18 * 0.48);
   }
 }
 
@@ -174,7 +181,7 @@ export default function PreloaderCanvas({
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x3b202c, 0.035);
+    scene.fog = new THREE.FogExp2(0x170308, 0.025);
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 0, getEnvelopeCameraDistance(width));
 
@@ -233,18 +240,14 @@ export default function PreloaderCanvas({
       applyOpenFinalState(envelope, lifecycle.openCompletedWithReducedMotion);
     }
 
-    scene.add(new THREE.AmbientLight(0xfff0f5, 1.2));
+    scene.add(new THREE.AmbientLight(0xfff0f5, 1.3));
 
-    const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.1);
-    keyLight.position.set(3, 5, 4);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.2);
+    keyLight.position.set(4, 6, 5);
     scene.add(keyLight);
 
-    const violetLight = new THREE.PointLight(0x876d91, 2.1, 16);
-    violetLight.position.set(-4, -3, 3);
-    scene.add(violetLight);
-
-    const roseLight = new THREE.PointLight(0xa34e5d, 1.8, 14);
-    roseLight.position.set(3, -2, 2);
+    const roseLight = new THREE.PointLight(0xff75a0, 2.5, 15);
+    roseLight.position.set(-3, -2, 3);
     scene.add(roseLight);
 
     const raycaster = new THREE.Raycaster();
@@ -421,7 +424,7 @@ export default function PreloaderCanvas({
 
     const tween = gsap.to(state.envelope.group.rotation, {
       y: Math.PI,
-      duration: 1.2,
+      duration: 1.4,
       ease: 'power2.inOut',
       onComplete: () => {
         if (sceneRef.current !== state || state.flipComplete || lifecycle.flipComplete) {
@@ -431,6 +434,15 @@ export default function PreloaderCanvas({
         lifecycle.flipComplete = true;
         state.flipComplete = true;
         callbacksRef.current.onSealReady();
+
+        gsap.to(state.envelope.seal.scale, {
+          x: 1.25,
+          y: 1.25,
+          z: 1.25,
+          duration: 0.6,
+          yoyo: true,
+          repeat: -1,
+        });
       },
     });
 
@@ -479,6 +491,9 @@ export default function PreloaderCanvas({
     state.didOpen = true;
     lifecycle.openStarted = true;
 
+    gsap.killTweensOf(state.envelope.seal.scale);
+    state.envelope.seal.scale.set(1, 1, 1);
+
     const timeline = gsap.timeline({
       onComplete: () => {
         if (sceneRef.current !== state || state.openComplete || lifecycle.openComplete) {
@@ -493,11 +508,11 @@ export default function PreloaderCanvas({
     });
 
     timeline
-      .to(state.envelope.seal.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.18 })
-      .to(state.envelope.seal.scale, { x: 0.25, y: 0.25, z: 0.25, duration: 0.28 })
-      .to(state.envelope.topFlapPivot.rotation, { x: -Math.PI * 0.95, duration: 0.9, ease: 'power2.out' }, '<')
-      .to(state.envelope.letterMesh.position, { y: 1.25, z: -0.25, duration: 1.1, ease: 'power3.out' }, '-=0.55')
-      .to(state.envelope.group.position, { y: -0.8, duration: 0.9, ease: 'power2.out' }, '-=0.85');
+      .to(state.envelope.seal.scale, { x: 1, y: 1, z: 1, duration: 0.2 })
+      .to(state.envelope.topFlapPivot.rotation, { x: -Math.PI * 0.95, duration: 1.1, ease: 'back.out(1.8)' }, '<')
+      .to(state.envelope.group.position, { y: -1.4, duration: 1.2, ease: 'power2.out' }, 0.3)
+      .to(state.envelope.letterMesh.position, { y: 1.5, z: -0.25, duration: 1.4, ease: 'power3.out' }, 0.4)
+      .to(state.envelope.letterMesh.scale, { x: 1.18 * 0.48, y: 1.18 * 0.48, z: 1.18 * 0.48, duration: 1.4, ease: 'back.out(1.4)' }, 0.4);
 
     return () => timeline.kill();
   }, [isOpening, reducedMotion, webGLAvailable, sceneGeneration]);

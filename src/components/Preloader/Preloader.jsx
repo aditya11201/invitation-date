@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { sound } from '../../utils/sound';
 import { clampProgress, formatPreloaderCopy, getPreloaderPhase } from './preloaderStages.js';
 import PreloaderCanvas from './PreloaderCanvas';
@@ -95,38 +95,70 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
 
   return (
     <section className={`preloader${isFading ? ' is-fading' : ''}`} aria-busy={!isSealReady}>
-      <div className="preloader__ambient preloader__ambient--rose" aria-hidden="true" />
-      <div className="preloader__ambient preloader__ambient--violet" aria-hidden="true" />
-      <div className="preloader__content">
-        <p className="preloader__eyebrow"><Sparkles aria-hidden="true" /><span>{format(preloaderConfig.badge)}</span></p>
-        <h1 className="preloader__title">{preloaderConfig.title}</h1>
-        <p className="preloader__dedication">for {displayName} 💗</p>
-        <div className="preloader__scene-stage">
-          <PreloaderCanvas
-            coverContent={coverContent}
-            isOpening={isOpening}
-            isReady={isLoaded}
-            onOpenComplete={handleOpenComplete}
-            onSealActivate={handleOpen}
-            onSealReady={() => setIsSealReady(true)}
-            reducedMotion={reducedMotion}
-          />
+      <h1 className="sr-only">{format(preloaderConfig.title || 'A Special Invitation')}</h1>
+
+      {/* Top Header Badge */}
+      <div className="preloader__badge-container" aria-hidden="true">
+        <div className="glass-panel preloader__badge">
+          <span className="preloader__badge-dot" />
+          <span>{format(preloaderConfig.badge)}</span>
         </div>
-        <div className="preloader__progress-panel">
-          <div className="preloader__progress-track" role="progressbar" aria-label="Preparing your invitation" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress} aria-valuetext={loadingMessage}>
-            <div className="preloader__progress-fill" style={{ width: `${progress}%` }} />
+      </div>
+
+      {/* 3D Fullscreen Envelope Canvas Stage */}
+      <div className="preloader__scene-stage">
+        <PreloaderCanvas
+          coverContent={coverContent}
+          isOpening={isOpening}
+          isReady={isLoaded}
+          onOpenComplete={handleOpenComplete}
+          onSealActivate={handleOpen}
+          onSealReady={() => setIsSealReady(true)}
+          reducedMotion={reducedMotion}
+        />
+      </div>
+
+      {/* Bottom Loading Indicator */}
+      <div className={`preloader__progress-panel ${isSealReady ? 'is-hidden' : ''}`}>
+        <div className="glass-panel preloader__progress-card">
+          <div
+            className="preloader__progress-track"
+            role="progressbar"
+            aria-label="Preparing your invitation"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={progress}
+            aria-valuetext={loadingMessage}
+          >
+            <div className="preloader__progress-fill bar-glow" style={{ width: `${progress}%` }} />
           </div>
           <div className="preloader__progress-meta">
             <span className="preloader__progress-message" role="status" aria-live="polite">{loadingMessage}</span>
             <span className="preloader__progress-value">{progress}%</span>
           </div>
         </div>
-        <p className="preloader__hint" aria-live="polite">{isSealReady ? preloaderConfig.sealHint : 'Preparing the seal...'}</p>
-        <button type="button" className="preloader__cta" onClick={handleOpen} disabled={!isSealReady || isOpening} aria-label={format(preloaderConfig.openLabel)}>
-          <span>{format(preloaderConfig.openLabel)}</span>
-          <Heart className="preloader__cta-icon" aria-hidden="true" />
-        </button>
       </div>
+
+      {/* Instruction Hint (Reveals when Envelope Flips & Seal is Ready) */}
+      <div className={`preloader__hint-panel ${isSealReady && !isOpening ? 'is-visible' : ''}`} aria-live="polite">
+        <div className="glass-panel preloader__hint-badge">
+          <span aria-hidden="true">✨</span>
+          <span>{preloaderConfig.sealHint}</span>
+          <span aria-hidden="true">✨</span>
+        </div>
+      </div>
+
+      {/* Accessible CTA Button for Keyboard and Screen Reader Navigation */}
+      <button
+        type="button"
+        className="preloader__cta sr-only focus:not-sr-only"
+        onClick={handleOpen}
+        disabled={!isSealReady || isOpening}
+        aria-label={format(preloaderConfig.openLabel)}
+      >
+        <span>{format(preloaderConfig.openLabel)}</span>
+        <Heart className="preloader__cta-icon" aria-hidden="true" />
+      </button>
     </section>
   );
 }
