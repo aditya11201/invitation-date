@@ -428,23 +428,6 @@ function createHeartReliefGeometry() {
   });
 }
 
-function disposeMaterial(material) {
-  if (Array.isArray(material)) {
-    material.forEach(disposeMaterial);
-    return;
-  }
-
-  if (!material) {
-    return;
-  }
-
-  if (material.map) {
-    material.map.dispose();
-  }
-
-  material.dispose();
-}
-
 export function createEnvelopeScene({ coverTexture = null } = {}) {
   const group = new THREE.Group();
   group.name = 'preloader-envelope';
@@ -511,13 +494,34 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   sealMesh.rotation.x = Math.PI / 2;
   seal.add(sealMesh);
 
-  const relief = new THREE.Mesh(createHeartReliefGeometry(), reliefMaterial);
+  const reliefGeometry = createHeartReliefGeometry();
+  const relief = new THREE.Mesh(reliefGeometry, reliefMaterial);
   relief.name = 'preloader-envelope-seal-relief';
   relief.position.z = 0.05;
   seal.add(relief);
 
+  const reliefBack = new THREE.Mesh(reliefGeometry, reliefMaterial);
+  reliefBack.name = 'preloader-envelope-seal-relief-back';
+  reliefBack.position.z = -0.05;
+  reliefBack.rotation.y = Math.PI;
+  seal.add(reliefBack);
+
   topFlapPivot.add(seal);
   group.add(topFlapPivot);
+
+  const ownedGeometries = new Set();
+  const ownedMaterials = new Set();
+  group.traverse((object) => {
+    if (object.geometry) {
+      ownedGeometries.add(object.geometry);
+    }
+
+    if (object.material) {
+      ownedMaterials.add(object.material);
+    }
+  });
+
+  let disposed = false;
 
   return {
     group,
@@ -526,15 +530,13 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
     sealMesh,
     letterMesh: letter,
     dispose() {
-      group.traverse((object) => {
-        if (object.geometry) {
-          object.geometry.dispose();
-        }
+      if (disposed) {
+        return;
+      }
 
-        if (object.material) {
-          disposeMaterial(object.material);
-        }
-      });
+      disposed = true;
+      ownedGeometries.forEach((geometry) => geometry.dispose());
+      ownedMaterials.forEach((material) => material.dispose());
     },
   };
 }
@@ -548,7 +550,7 @@ Run:
 node --test src/components/Preloader/envelopeScene.test.js
 ```
 
-Expected: three tests pass with exit code `0`; no `WebGLRenderer` is created.
+Expected: five tests pass with exit code `0`; no `WebGLRenderer` is created.
 
 - [ ] **Step 5: Run all current unit tests**
 
