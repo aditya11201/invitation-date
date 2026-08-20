@@ -1591,3 +1591,9 @@ The plan contains exact paths, function signatures, code, commands, expected res
 - Task 4 defines `onAudioUnlock` and `onStart` as separate callbacks; `App.jsx` supplies both and preserves the downstream scene contract.
 - CSS class names emitted by `Preloader.jsx` and `PreloaderCanvas.jsx` are defined in `preloader.css`.
 - WebGL fallback keeps the same semantic readiness/opening contract: `isReady` enables the CTA through `onSealReady`, and `isOpening` completes through `onOpenComplete` even when `sceneRef.current` is null.
+
+### Post-implementation adjustments
+
+- **Preloader layout and short viewport scrolling (`preloader.css`)**: Used `overflow-x: hidden; overflow-y: auto;` with safe centering (`place-items: safe center; place-content: safe center;` and `margin: auto 0;`) along with a `@media (max-height: 680px)` breakpoint and width constraints (`max-width: 100%`, `white-space: normal`, `overflow-wrap: anywhere`, `min(96vw, 100%)`) so that 200% zoom, short viewports, and narrow viewports keep all content and the CTA reachable without horizontal clipping.
+- **PreloaderCanvas lifecycle and motion gating (`PreloaderCanvas.jsx`)**: Added `lifecycleRef` and `sceneGeneration` rehydration across prop updates, guarded the Three.js setup effect against re-initializing hidden renderers when `webGLAvailable` is false, and replaced perpetual requestAnimationFrame in `prefers-reduced-motion` mode with a single static frame render while retaining dynamic preference switching and resource disposal.
+- **Runtime dependency scan (`dist/index.html`)**: Corrected the post-build runtime dependency scan script in Task 5 to permit pre-existing Google Fonts stylesheet `<link>` tags while strictly verifying that no external JavaScript or CDN scripts are loaded.

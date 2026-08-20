@@ -91,6 +91,7 @@
 .preloader__scene-stage {
   position: relative;
   width: min(92vw, 40rem);
+  max-width: 100%;
   height: min(47vh, 22rem);
   min-height: 14rem;
   margin-bottom: 0.2rem;
@@ -211,6 +212,7 @@
 
 .preloader__cta {
   display: inline-flex;
+  max-width: 100%;
   min-height: 48px;
   align-items: center;
   justify-content: center;
@@ -225,7 +227,13 @@
   font: 700 0.74rem/1.2 'Plus Jakarta Sans', system-ui, sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  white-space: normal;
   transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+
+.preloader__cta span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .preloader__cta:hover:not(:disabled) { background: #873f50; transform: translateY(-2px); }
@@ -239,7 +247,7 @@
     padding-right: max(1rem, env(safe-area-inset-right));
     padding-left: max(1rem, env(safe-area-inset-left));
   }
-  .preloader__scene-stage { width: 96vw; height: 38vh; min-height: 12.5rem; }
+  .preloader__scene-stage { width: min(96vw, 100%); height: 38vh; min-height: 12.5rem; }
   .preloader__progress-meta { font-size: 0.64rem; }
 }
 
