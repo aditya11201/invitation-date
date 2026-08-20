@@ -14,6 +14,21 @@ export const invitationConfig = {
     scrollPrompt: "Scroll down to open your letter"
   },
 
+  preloader: {
+    badge: "A little delivery for {{recipientName}}",
+    title: "Preparing something special for you... 💗",
+    coverHeadline: "A sealed note",
+    coverSubtext: "is waiting for you...",
+    sealHint: "Tap the seal to open",
+    openLabel: "Open {{recipientName}}'s invitation",
+    phases: [
+      { start: 0, key: "crafting", message: "Folding a little note..." },
+      { start: 31, key: "writing", message: "Writing something just for {{recipientName}}..." },
+      { start: 66, key: "sealing", message: "Adding a touch of rose wax..." },
+      { start: 91, key: "ready", message: "Your invitation is ready." }
+    ]
+  },
+
   letter: {
     tag: "A Note From My Heart 💌",
     greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
