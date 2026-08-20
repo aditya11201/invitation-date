@@ -311,6 +311,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
 
       if (heartGeo) heartGeo.dispose();
       if (celebGeo) celebGeo.dispose();
+      celebParticles.forEach(({ mesh }) => mesh.material.dispose());
       heartMaterials.forEach(m => m.dispose());
       if (renderer) renderer.dispose();
     };
