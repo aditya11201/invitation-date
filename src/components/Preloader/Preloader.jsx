@@ -119,7 +119,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
       </div>
 
       {/* Bottom Loading Indicator */}
-      <div className={`preloader__progress-panel ${isSealReady ? 'is-hidden' : ''}`}>
+      <div className={`preloader__progress-panel ${isLoaded ? 'is-hidden' : ''}`}>
         <div className="glass-panel preloader__progress-card">
           <div
             className="preloader__progress-track"

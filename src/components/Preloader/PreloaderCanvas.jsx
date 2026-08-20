@@ -326,6 +326,7 @@ export default function PreloaderCanvas({
         envelope.topFlapPivot.rotation,
         envelope.seal.scale,
         envelope.letterMesh.position,
+        envelope.letterMesh.scale,
       ]);
       envelope.dispose();
       coverTexture.dispose();
@@ -353,8 +354,24 @@ export default function PreloaderCanvas({
         cancelAnimationFrame(state.frameId);
         state.frameId = 0;
       }
+      gsap.killTweensOf(state.envelope.seal.scale);
+      if (!state.didOpen) {
+        state.envelope.seal.scale.set(1, 1, 1);
+      }
       state.renderer.render(state.scene, state.camera);
       return undefined;
+    }
+
+    if (state.flipComplete && !state.didOpen && !state.openComplete) {
+      gsap.killTweensOf(state.envelope.seal.scale);
+      gsap.to(state.envelope.seal.scale, {
+        x: 1.25,
+        y: 1.25,
+        z: 1.25,
+        duration: 0.6,
+        yoyo: true,
+        repeat: -1,
+      });
     }
 
     let localFrameId = 0;
@@ -385,6 +402,9 @@ export default function PreloaderCanvas({
       }
       if (state.frameId === localFrameId) {
         state.frameId = 0;
+      }
+      if (state.envelope?.seal?.scale) {
+        gsap.killTweensOf(state.envelope.seal.scale);
       }
     };
   }, [reducedMotion, sceneGeneration]);
@@ -446,7 +466,12 @@ export default function PreloaderCanvas({
       },
     });
 
-    return () => tween.kill();
+    return () => {
+      tween.kill();
+      if (state.envelope?.seal?.scale) {
+        gsap.killTweensOf(state.envelope.seal.scale);
+      }
+    };
   }, [isReady, reducedMotion, sceneGeneration]);
 
   useEffect(() => {
@@ -528,7 +553,15 @@ export default function PreloaderCanvas({
               <span>{year}</span>
             </div>
             <div className="preloader-canvas__fallback-flap" />
-            <div className="preloader-canvas__fallback-seal">♥</div>
+            <button
+              type="button"
+              className="preloader-canvas__fallback-seal"
+              onClick={() => callbacksRef.current.onSealActivate?.()}
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              ♥
+            </button>
           </div>
         </div>
       )}
