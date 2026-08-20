@@ -6,14 +6,11 @@ import {
   getEnvelopeCameraDistance,
 } from './envelopeScene.js';
 
-function createCoverTexture({ recipientName, senderName, year, headline, subtext }) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1440;
-  canvas.height = 960;
-  const context = canvas.getContext('2d');
+function drawCoverCanvas(context, canvas, { recipientName, senderName, year, headline, subtext }) {
   const safeRecipient = recipientName || 'you';
   const safeSender = senderName || 'someone special';
 
+  context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = '#6e3547';
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.strokeStyle = '#d4af37';
@@ -43,18 +40,44 @@ function createCoverTexture({ recipientName, senderName, year, headline, subtext
   context.fillText(String(year), canvas.width - 112, 168);
   context.font = '700 24px "Plus Jakarta Sans", sans-serif';
   context.fillText('PRIVATE DELIVERY', canvas.width - 112, 208);
+}
+
+function createCoverTexture({ recipientName, senderName, year, headline, subtext }) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1440;
+  canvas.height = 960;
+  const context = canvas.getContext('2d');
+  const content = { recipientName, senderName, year, headline, subtext };
+
+  drawCoverCanvas(context, canvas, content);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
+  let disposed = false;
 
   if (document.fonts?.ready) {
     document.fonts.ready.then(() => {
+      if (disposed) {
+        return;
+      }
+
+      drawCoverCanvas(context, canvas, content);
       texture.needsUpdate = true;
     });
   }
 
-  return texture;
+  return {
+    texture,
+    dispose() {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
+      texture.dispose();
+    },
+  };
 }
 
 function createDustField() {
@@ -91,6 +114,17 @@ function getPointerPosition(event, element) {
   );
 }
 
+function applyOpenFinalState(envelope, reducedMotion) {
+  envelope.seal.scale.setScalar(reducedMotion ? 1 : 0.25);
+  envelope.topFlapPivot.rotation.x = -Math.PI * 0.95;
+  envelope.group.position.y = -0.8;
+  envelope.letterMesh.position.y = reducedMotion ? 1.2 : 1.25;
+
+  if (!reducedMotion) {
+    envelope.letterMesh.position.z = -0.25;
+  }
+}
+
 export default function PreloaderCanvas({
   isReady,
   isOpening,
@@ -111,6 +145,15 @@ export default function PreloaderCanvas({
   const sceneRef = useRef(null);
   const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete });
   const reducedMotionRef = useRef(reducedMotion);
+  const lifecycleRef = useRef({
+    flipStarted: false,
+    flipComplete: false,
+    openStarted: false,
+    openComplete: false,
+    openCompletedWithReducedMotion: false,
+  });
+  const sceneGenerationRef = useRef(0);
+  const [sceneGeneration, setSceneGeneration] = useState(1);
   const fallbackReadyRef = useRef(false);
   const fallbackOpenRef = useRef(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
@@ -125,6 +168,8 @@ export default function PreloaderCanvas({
       return undefined;
     }
 
+    const nextSceneGeneration = sceneGenerationRef.current + 1;
+    sceneGenerationRef.current = nextSceneGeneration;
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
     const scene = new THREE.Scene();
@@ -161,10 +206,20 @@ export default function PreloaderCanvas({
     }
 
     const coverTexture = createCoverTexture({ recipientName, senderName, year, headline, subtext });
-    const envelope = createEnvelopeScene({ coverTexture });
+    const envelope = createEnvelopeScene({ coverTexture: coverTexture.texture });
     const dust = createDustField();
     scene.add(envelope.group);
     scene.add(dust.points);
+
+    const lifecycle = lifecycleRef.current;
+
+    if (lifecycle.flipComplete || lifecycle.openStarted || lifecycle.openComplete) {
+      envelope.group.rotation.y = Math.PI;
+    }
+
+    if (lifecycle.openComplete) {
+      applyOpenFinalState(envelope, lifecycle.openCompletedWithReducedMotion);
+    }
 
     scene.add(new THREE.AmbientLight(0xfff0f5, 1.2));
 
@@ -195,12 +250,17 @@ export default function PreloaderCanvas({
       mouse,
       clock,
       frameId: 0,
-      didFlip: false,
-      flipComplete: false,
-      didOpen: false,
-      openComplete: false,
+      generation: nextSceneGeneration,
+      didFlip: lifecycle.flipStarted || lifecycle.flipComplete,
+      flipComplete: lifecycle.flipComplete,
+      didOpen: lifecycle.openStarted || lifecycle.openComplete,
+      openComplete: lifecycle.openComplete,
     };
     sceneRef.current = state;
+
+    if (nextSceneGeneration !== sceneGeneration) {
+      setSceneGeneration(nextSceneGeneration);
+    }
 
     const handlePointerMove = (event) => {
       const nextPointer = getPointerPosition(event, container);
@@ -281,62 +341,75 @@ export default function PreloaderCanvas({
   }, [recipientName, senderName, year, headline, subtext]);
 
   useEffect(() => {
-    if (!webGLAvailable && isReady && !fallbackReadyRef.current) {
+    const lifecycle = lifecycleRef.current;
+
+    if (!webGLAvailable && isReady && !fallbackReadyRef.current && !lifecycle.flipComplete) {
       fallbackReadyRef.current = true;
+      lifecycle.flipStarted = true;
+      lifecycle.flipComplete = true;
       callbacksRef.current.onSealReady();
     }
   }, [webGLAvailable, isReady]);
 
   useEffect(() => {
     const state = sceneRef.current;
+    const lifecycle = lifecycleRef.current;
 
-    if (!state || !isReady || state.flipComplete) {
+    if (!state || state.generation !== sceneGeneration || !isReady || state.flipComplete) {
       return undefined;
     }
 
     if (reducedMotion) {
       state.didFlip = true;
+      lifecycle.flipStarted = true;
+      lifecycle.flipComplete = true;
       state.envelope.group.rotation.y = Math.PI;
       state.flipComplete = true;
       callbacksRef.current.onSealReady();
       return undefined;
     }
 
-    if (state.didFlip) {
-      return undefined;
-    }
-
     state.didFlip = true;
+    lifecycle.flipStarted = true;
 
     const tween = gsap.to(state.envelope.group.rotation, {
       y: Math.PI,
       duration: 1.2,
       ease: 'power2.inOut',
       onComplete: () => {
-        if (state.flipComplete) {
+        if (sceneRef.current !== state || state.flipComplete || lifecycle.flipComplete) {
           return;
         }
 
+        lifecycle.flipComplete = true;
         state.flipComplete = true;
         callbacksRef.current.onSealReady();
       },
     });
 
     return () => tween.kill();
-  }, [isReady, reducedMotion]);
+  }, [isReady, reducedMotion, sceneGeneration]);
 
   useEffect(() => {
     const state = sceneRef.current;
+    const lifecycle = lifecycleRef.current;
 
     if (!isOpening) {
       return undefined;
     }
 
     if (!state) {
-      if (!webGLAvailable && !fallbackOpenRef.current) {
+      if (!webGLAvailable && !fallbackOpenRef.current && !lifecycle.openComplete) {
         fallbackOpenRef.current = true;
+        lifecycle.openStarted = true;
+        lifecycle.openComplete = true;
+        lifecycle.openCompletedWithReducedMotion = reducedMotion;
         callbacksRef.current.onOpenComplete();
       }
+      return undefined;
+    }
+
+    if (state.generation !== sceneGeneration) {
       return undefined;
     }
 
@@ -346,26 +419,26 @@ export default function PreloaderCanvas({
 
     if (reducedMotion) {
       state.didOpen = true;
-      state.envelope.topFlapPivot.rotation.x = -Math.PI * 0.95;
-      state.envelope.group.position.y = -0.8;
-      state.envelope.letterMesh.position.y = 1.2;
+      lifecycle.openStarted = true;
+      lifecycle.openComplete = true;
+      lifecycle.openCompletedWithReducedMotion = true;
+      applyOpenFinalState(state.envelope, true);
       state.openComplete = true;
       callbacksRef.current.onOpenComplete();
       return undefined;
     }
 
-    if (state.didOpen) {
-      return undefined;
-    }
-
     state.didOpen = true;
+    lifecycle.openStarted = true;
 
     const timeline = gsap.timeline({
       onComplete: () => {
-        if (state.openComplete) {
+        if (sceneRef.current !== state || state.openComplete || lifecycle.openComplete) {
           return;
         }
 
+        lifecycle.openComplete = true;
+        lifecycle.openCompletedWithReducedMotion = false;
         state.openComplete = true;
         callbacksRef.current.onOpenComplete();
       },
@@ -379,7 +452,7 @@ export default function PreloaderCanvas({
       .to(state.envelope.group.position, { y: -0.8, duration: 0.9, ease: 'power2.out' }, '-=0.85');
 
     return () => timeline.kill();
-  }, [isOpening, reducedMotion, webGLAvailable]);
+  }, [isOpening, reducedMotion, webGLAvailable, sceneGeneration]);
 
   return (
     <div ref={containerRef} className="preloader-canvas" aria-hidden="true">
