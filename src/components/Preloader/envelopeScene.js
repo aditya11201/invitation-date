@@ -21,6 +21,19 @@ export const ENVELOPE_DRAG_LIMITS = Object.freeze({
 
 export const DRAG_THRESHOLD_PX = 6;
 
+export const ENVELOPE_OPEN_FINAL_STATE = Object.freeze({
+  sealScale: 1,
+  topFlapRotationX: -Math.PI * 0.95,
+  groupY: -1.4,
+  letterY: 1.5,
+  letterZ: -0.25,
+  letterScale: 1.18 * 0.48,
+});
+
+export function isActivePointer(drag, pointerId) {
+  return drag.isPointerDown && drag.pointerId === pointerId;
+}
+
 export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
   const safeYaw = typeof yaw === 'number' && Number.isFinite(yaw) ? yaw : 0;
   const safePitch = typeof pitch === 'number' && Number.isFinite(pitch) ? pitch : 0;

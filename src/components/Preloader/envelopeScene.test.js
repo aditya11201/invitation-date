@@ -12,6 +12,8 @@ import {
   clampPointerPosition,
   isDragMovement,
   shouldActivateSeal,
+  ENVELOPE_OPEN_FINAL_STATE,
+  isActivePointer,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -258,4 +260,23 @@ test('shouldActivateSeal requires a seal start, seal release, and no drag moveme
   assert.equal(shouldActivateSeal({ startedOnSeal: false, releasedOnSeal: true, dragMoved: false }), false);
   assert.equal(shouldActivateSeal({ startedOnSeal: true, releasedOnSeal: false, dragMoved: false }), false);
   assert.equal(shouldActivateSeal({ startedOnSeal: true, releasedOnSeal: true, dragMoved: true }), false);
+});
+
+test('defines the canonical final transform for an opened envelope', () => {
+  assert.deepEqual(ENVELOPE_OPEN_FINAL_STATE, {
+    sealScale: 1,
+    topFlapRotationX: -Math.PI * 0.95,
+    groupY: -1.4,
+    letterY: 1.5,
+    letterZ: -0.25,
+    letterScale: 1.18 * 0.48,
+  });
+});
+
+test('matches pointer ownership only for the active pointer', () => {
+  const drag = { isPointerDown: true, pointerId: 7 };
+
+  assert.equal(isActivePointer(drag, 7), true);
+  assert.equal(isActivePointer(drag, 8), false);
+  assert.equal(isActivePointer({ ...drag, isPointerDown: false }, 7), false);
 });
