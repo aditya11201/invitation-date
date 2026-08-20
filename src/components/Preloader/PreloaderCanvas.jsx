@@ -42,7 +42,7 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   context.fillText('PRIVATE DELIVERY', canvas.width - 112, 208);
 }
 
-function createCoverTexture({ recipientName, senderName, year, headline, subtext }) {
+function createCoverTexture({ recipientName, senderName, year, headline, subtext, onUpdate }) {
   const canvas = document.createElement('canvas');
   canvas.width = 1440;
   canvas.height = 960;
@@ -64,6 +64,7 @@ function createCoverTexture({ recipientName, senderName, year, headline, subtext
 
       drawCoverCanvas(context, canvas, content);
       texture.needsUpdate = true;
+      onUpdate?.();
     });
   }
 
@@ -164,7 +165,7 @@ export default function PreloaderCanvas({
   useEffect(() => {
     const container = containerRef.current;
 
-    if (!container) {
+    if (!container || !webGLAvailable) {
       return undefined;
     }
 
@@ -205,7 +206,18 @@ export default function PreloaderCanvas({
       return undefined;
     }
 
-    const coverTexture = createCoverTexture({ recipientName, senderName, year, headline, subtext });
+    const coverTexture = createCoverTexture({
+      recipientName,
+      senderName,
+      year,
+      headline,
+      subtext,
+      onUpdate: () => {
+        if (reducedMotionRef.current && sceneRef.current) {
+          sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
+        }
+      },
+    });
     const envelope = createEnvelopeScene({ coverTexture: coverTexture.texture });
     const dust = createDustField();
     scene.add(envelope.group);
@@ -288,34 +300,20 @@ export default function PreloaderCanvas({
       camera.position.z = getEnvelopeCameraDistance(nextWidth);
       camera.updateProjectionMatrix();
       renderer.setSize(nextWidth, nextHeight);
+      if (reducedMotionRef.current) {
+        renderer.render(scene, camera);
+      }
     };
 
     container.addEventListener('pointermove', handlePointerMove, { passive: true });
     container.addEventListener('pointerup', handlePointerUp, { passive: true });
     window.addEventListener('resize', handleResize);
 
-    const renderFrame = () => {
-      const elapsed = clock.getElapsedTime();
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
-
-      if (!reducedMotionRef.current) {
-        if (!state.didFlip && !state.didOpen) {
-          envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
-          envelope.group.rotation.x = mouse.y * 0.08;
-          envelope.group.rotation.y += (mouse.x * 0.16 - envelope.group.rotation.y) * 0.03;
-        }
-        dust.points.rotation.y += 0.0007;
-      }
-
-      renderer.render(scene, camera);
-      state.frameId = requestAnimationFrame(renderFrame);
-    };
-
-    renderFrame();
-
     return () => {
-      cancelAnimationFrame(state.frameId);
+      if (state.frameId) {
+        cancelAnimationFrame(state.frameId);
+        state.frameId = 0;
+      }
       container.removeEventListener('pointermove', handlePointerMove);
       container.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('resize', handleResize);
@@ -338,7 +336,55 @@ export default function PreloaderCanvas({
 
       sceneRef.current = null;
     };
-  }, [recipientName, senderName, year, headline, subtext]);
+  }, [recipientName, senderName, year, headline, subtext, webGLAvailable]);
+
+  useEffect(() => {
+    const state = sceneRef.current;
+
+    if (!state || state.generation !== sceneGeneration) {
+      return undefined;
+    }
+
+    if (reducedMotion) {
+      if (state.frameId) {
+        cancelAnimationFrame(state.frameId);
+        state.frameId = 0;
+      }
+      state.renderer.render(state.scene, state.camera);
+      return undefined;
+    }
+
+    let localFrameId = 0;
+
+    const renderFrame = () => {
+      const elapsed = state.clock.getElapsedTime();
+      state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.05;
+      state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.05;
+
+      if (!state.didFlip && !state.didOpen) {
+        state.envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
+        state.envelope.group.rotation.x = state.mouse.y * 0.08;
+        state.envelope.group.rotation.y += (state.mouse.x * 0.16 - state.envelope.group.rotation.y) * 0.03;
+      }
+      state.dust.points.rotation.y += 0.0007;
+
+      state.renderer.render(state.scene, state.camera);
+      localFrameId = requestAnimationFrame(renderFrame);
+      state.frameId = localFrameId;
+    };
+
+    localFrameId = requestAnimationFrame(renderFrame);
+    state.frameId = localFrameId;
+
+    return () => {
+      if (localFrameId) {
+        cancelAnimationFrame(localFrameId);
+      }
+      if (state.frameId === localFrameId) {
+        state.frameId = 0;
+      }
+    };
+  }, [reducedMotion, sceneGeneration]);
 
   useEffect(() => {
     const lifecycle = lifecycleRef.current;
@@ -366,6 +412,7 @@ export default function PreloaderCanvas({
       state.envelope.group.rotation.y = Math.PI;
       state.flipComplete = true;
       callbacksRef.current.onSealReady();
+      state.renderer.render(state.scene, state.camera);
       return undefined;
     }
 
@@ -425,6 +472,7 @@ export default function PreloaderCanvas({
       applyOpenFinalState(state.envelope, true);
       state.openComplete = true;
       callbacksRef.current.onOpenComplete();
+      state.renderer.render(state.scene, state.camera);
       return undefined;
     }
 
