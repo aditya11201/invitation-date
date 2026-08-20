@@ -31,6 +31,10 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
       return undefined;
     }
 
+    if (isLoaded) {
+      return undefined;
+    }
+
     const startedAt = performance.now();
     const duration = 3200;
     let frameId = 0;
@@ -46,7 +50,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
 
     frameId = requestAnimationFrame(updateProgress);
     return () => cancelAnimationFrame(frameId);
-  }, [reducedMotion]);
+  }, [isLoaded, reducedMotion]);
 
   useEffect(() => () => clearTimeout(startTimeoutRef.current), []);
 
