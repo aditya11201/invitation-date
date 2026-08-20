@@ -4,7 +4,7 @@ import { sound } from '../../utils/sound';
 import { getLoadingMessage, PRELOADER_COPY } from './preloaderStages.js';
 import './preloader.css';
 
-export default function Preloader({ onStart, recipientName }) {
+export default function Preloader({ onStart, onAudioUnlock, recipientName }) {
   const [progress, setProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
@@ -42,6 +42,7 @@ export default function Preloader({ onStart, recipientName }) {
   const handleEnter = () => {
     if (!isReady || isOpening || startedRef.current) return;
 
+    onAudioUnlock?.();
     startedRef.current = true;
     sound.playPop(1.2);
     sound.playSparkle();
@@ -52,8 +53,8 @@ export default function Preloader({ onStart, recipientName }) {
     startTimeoutRef.current = setTimeout(() => onStart(), reducedMotion ? 100 : 700);
   };
 
-  const displayName = recipientName || 'my beautiful girl';
-  const loadingMessage = getLoadingMessage(progress, recipientName);
+  const displayRecipient = recipientName || 'Sassy';
+  const loadingMessage = getLoadingMessage(progress, displayRecipient);
 
   return (
     <div className={`preloader${isFading ? ' is-fading' : ''}`}>
@@ -69,14 +70,14 @@ export default function Preloader({ onStart, recipientName }) {
         </div>
 
         <h1 className="preloader__title">{PRELOADER_COPY.title}</h1>
-        <p className="preloader__dedication">for {displayName} 💗</p>
+        <p className="preloader__dedication">for {displayRecipient} 💗</p>
 
         <div className="preloader__envelope-stage" aria-hidden="true">
           <div className={`preloader__envelope${isReady ? ' is-ready' : ''}${isOpening ? ' is-opening' : ''}`}>
             <div className="preloader__envelope-shell">
               <div className="preloader__envelope-inner">
                 <div className="preloader__letter-peek">
-                  <span className="preloader__letter-label">To: {recipientName || 'you'}</span>
+                  <span className="preloader__letter-label">To: {displayRecipient}</span>
                   <span className="preloader__letter-line" />
                   <span className="preloader__letter-line preloader__letter-line--short" />
                 </div>
@@ -120,7 +121,7 @@ export default function Preloader({ onStart, recipientName }) {
               className="preloader__cta"
               onClick={handleEnter}
               disabled={isOpening}
-              aria-label="Open the romantic invitation"
+              aria-label={PRELOADER_COPY.cta}
             >
               <span>{PRELOADER_COPY.cta}</span>
               <Heart className="preloader__cta-icon" />
