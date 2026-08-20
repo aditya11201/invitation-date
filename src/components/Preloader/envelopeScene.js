@@ -58,23 +58,10 @@ function createHeartReliefGeometry() {
   });
 }
 
-function disposeMaterial(material) {
-  if (Array.isArray(material)) {
-    material.forEach(disposeMaterial);
-    return;
-  }
-
-  if (!material) {
-    return;
-  }
-
-  if (material.map) {
-    material.map.dispose();
-  }
-
-  material.dispose();
-}
-
+/**
+ * Builds the scene with an optional caller-owned cover texture. The cleanup
+ * function disposes scene-owned resources but never disposes coverTexture.
+ */
 export function createEnvelopeScene({ coverTexture = null } = {}) {
   const group = new THREE.Group();
   group.name = 'preloader-envelope';
@@ -149,6 +136,20 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   topFlapPivot.add(seal);
   group.add(topFlapPivot);
 
+  const ownedGeometries = new Set();
+  const ownedMaterials = new Set();
+  group.traverse((object) => {
+    if (object.geometry) {
+      ownedGeometries.add(object.geometry);
+    }
+
+    if (object.material) {
+      ownedMaterials.add(object.material);
+    }
+  });
+
+  let disposed = false;
+
   return {
     group,
     topFlapPivot,
@@ -156,15 +157,13 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
     sealMesh,
     letterMesh: letter,
     dispose() {
-      group.traverse((object) => {
-        if (object.geometry) {
-          object.geometry.dispose();
-        }
+      if (disposed) {
+        return;
+      }
 
-        if (object.material) {
-          disposeMaterial(object.material);
-        }
-      });
+      disposed = true;
+      ownedGeometries.forEach((geometry) => geometry.dispose());
+      ownedMaterials.forEach((material) => material.dispose());
     },
   };
 }

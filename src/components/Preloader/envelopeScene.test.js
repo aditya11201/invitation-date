@@ -47,3 +47,39 @@ test('accepts a cover texture on the front stationery plane', () => {
 
   envelope.dispose();
 });
+
+test('disposes owned resources once without disposing the cover texture', () => {
+  const coverTexture = new THREE.Texture();
+  const envelope = createEnvelopeScene({ coverTexture });
+  const geometries = new Set();
+  const materials = new Set();
+
+  envelope.group.traverse((object) => {
+    if (object.geometry) {
+      geometries.add(object.geometry);
+    }
+
+    if (object.material) {
+      materials.add(object.material);
+    }
+  });
+
+  const disposalCounts = new Map();
+  [...geometries, ...materials].forEach((resource) => {
+    disposalCounts.set(resource, 0);
+    resource.addEventListener('dispose', () => {
+      disposalCounts.set(resource, disposalCounts.get(resource) + 1);
+    });
+  });
+
+  let coverTextureDisposals = 0;
+  coverTexture.addEventListener('dispose', () => {
+    coverTextureDisposals += 1;
+  });
+
+  envelope.dispose();
+
+  geometries.forEach((geometry) => assert.equal(disposalCounts.get(geometry), 1));
+  materials.forEach((material) => assert.equal(disposalCounts.get(material), 1));
+  assert.equal(coverTextureDisposals, 0);
+});
