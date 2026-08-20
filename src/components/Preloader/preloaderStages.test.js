@@ -9,7 +9,7 @@ import {
 const phases = [
   { start: 0, key: 'crafting', message: 'Folding a little note...' },
   { start: 31, key: 'writing', message: 'Writing something just for {{recipientName}}...' },
-  { start: 66, key: 'sealing', message: 'Adding a touch of rose wax...' },
+  { start: 66, key: 'sealing', message: 'Adding a touch of golden wax...' },
   { start: 91, key: 'ready', message: 'Your invitation is ready.' },
 ];
 
