@@ -442,6 +442,7 @@ export default function PreloaderCanvas({
         return;
       }
 
+      window.addEventListener('pointermove', handlePointerMove, { passive: true });
       window.addEventListener('pointerup', handlePointerUp, { passive: true });
       window.addEventListener('pointercancel', handlePointerCancel, { passive: true });
       fallbackPointerListenersAttached = true;
@@ -452,6 +453,7 @@ export default function PreloaderCanvas({
         return;
       }
 
+      window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerCancel);
       fallbackPointerListenersAttached = false;
