@@ -12,6 +12,41 @@ export function getEnvelopeCameraDistance(viewportWidth) {
   return viewportWidth < 640 ? 8.5 : 7.2;
 }
 
+export const ENVELOPE_DRAG_LIMITS = Object.freeze({
+  minPitch: -Math.PI / 5,
+  maxPitch: Math.PI / 5,
+  minYaw: -Math.PI / 2.2,
+  maxYaw: Math.PI / 2.2,
+});
+
+export const DRAG_THRESHOLD_PX = 6;
+
+export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
+  const safeYaw = typeof yaw === 'number' && Number.isFinite(yaw) ? yaw : 0;
+  const safePitch = typeof pitch === 'number' && Number.isFinite(pitch) ? pitch : 0;
+  return {
+    yaw: THREE.MathUtils.clamp(safeYaw, limits.minYaw, limits.maxYaw),
+    pitch: THREE.MathUtils.clamp(safePitch, limits.minPitch, limits.maxPitch),
+  };
+}
+
+export function computeDragRotation({
+  startYaw = 0,
+  startPitch = 0,
+  deltaX = 0,
+  deltaY = 0,
+  sensitivity = 0.004,
+  limits = ENVELOPE_DRAG_LIMITS,
+} = {}) {
+  const nextYaw = startYaw + deltaX * sensitivity;
+  const nextPitch = startPitch + deltaY * sensitivity;
+  return clampDragRotation(nextYaw, nextPitch, limits);
+}
+
+export function isDragMovement(deltaX, deltaY, threshold = DRAG_THRESHOLD_PX) {
+  return Math.hypot(deltaX, deltaY) > threshold;
+}
+
 function createTriangleGeometry(base, height) {
   const shape = new THREE.Shape();
   shape.moveTo(-base / 2, 0);

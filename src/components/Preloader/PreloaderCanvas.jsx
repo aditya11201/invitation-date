@@ -4,6 +4,10 @@ import gsap from 'gsap';
 import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
+  ENVELOPE_DRAG_LIMITS,
+  DRAG_THRESHOLD_PX,
+  computeDragRotation,
+  isDragMovement,
 } from './envelopeScene.js';
 
 function drawCoverCanvas(context, canvas, { recipientName, senderName, year, headline, subtext }) {
@@ -233,7 +237,7 @@ export default function PreloaderCanvas({
     const lifecycle = lifecycleRef.current;
 
     if (lifecycle.flipComplete || lifecycle.openStarted || lifecycle.openComplete) {
-      envelope.group.rotation.y = Math.PI;
+      envelope.group.rotation.set(0, Math.PI, 0);
     }
 
     if (lifecycle.openComplete) {
@@ -253,6 +257,17 @@ export default function PreloaderCanvas({
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    const drag = {
+      isPointerDown: false,
+      dragMoved: false,
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      startYaw: 0,
+      startPitch: 0,
+      yaw: 0,
+      pitch: 0,
+    };
     const clock = new THREE.Clock();
     const state = {
       scene,
@@ -263,6 +278,7 @@ export default function PreloaderCanvas({
       raycaster,
       pointer,
       mouse,
+      drag,
       clock,
       frameId: 0,
       generation: nextSceneGeneration,
@@ -277,13 +293,78 @@ export default function PreloaderCanvas({
       setSceneGeneration(nextSceneGeneration);
     }
 
+    const handlePointerDown = (event) => {
+      drag.isPointerDown = true;
+      drag.pointerId = event.pointerId;
+      drag.startX = event.clientX;
+      drag.startY = event.clientY;
+      drag.startYaw = drag.yaw;
+      drag.startPitch = drag.pitch;
+      drag.dragMoved = false;
+
+      if (container.setPointerCapture) {
+        try {
+          container.setPointerCapture(event.pointerId);
+        } catch {
+          // Ignore untracked pointer capture errors
+        }
+      }
+    };
+
     const handlePointerMove = (event) => {
       const nextPointer = getPointerPosition(event, container);
       mouse.targetX = nextPointer.x;
       mouse.targetY = nextPointer.y;
+
+      if (!drag.isPointerDown || (drag.pointerId !== null && drag.pointerId !== event.pointerId)) {
+        return;
+      }
+
+      const deltaX = event.clientX - drag.startX;
+      const deltaY = event.clientY - drag.startY;
+
+      if (!drag.dragMoved && isDragMovement(deltaX, deltaY, DRAG_THRESHOLD_PX)) {
+        drag.dragMoved = true;
+      }
+
+      if (!state.didFlip && !state.didOpen && drag.dragMoved) {
+        const computed = computeDragRotation({
+          startYaw: drag.startYaw,
+          startPitch: drag.startPitch,
+          deltaX,
+          deltaY,
+          sensitivity: 0.004,
+          limits: ENVELOPE_DRAG_LIMITS,
+        });
+        drag.yaw = computed.yaw;
+        drag.pitch = computed.pitch;
+      }
     };
 
     const handlePointerUp = (event) => {
+      const isTargetPointer = drag.pointerId === null || drag.pointerId === event.pointerId;
+      const deltaX = event.clientX - drag.startX;
+      const deltaY = event.clientY - drag.startY;
+      const hadDragMovement = drag.dragMoved || isDragMovement(deltaX, deltaY, DRAG_THRESHOLD_PX);
+
+      if (isTargetPointer && container.hasPointerCapture?.(event.pointerId)) {
+        try {
+          container.releasePointerCapture(event.pointerId);
+        } catch {
+          // Ignore
+        }
+      }
+
+      if (isTargetPointer) {
+        drag.isPointerDown = false;
+        drag.dragMoved = false;
+        drag.pointerId = null;
+      }
+
+      if (hadDragMovement) {
+        return;
+      }
+
       if (!state.flipComplete || state.didOpen) {
         return;
       }
@@ -292,7 +373,25 @@ export default function PreloaderCanvas({
       raycaster.setFromCamera(pointer, camera);
 
       if (raycaster.intersectObject(envelope.seal, true).length > 0) {
-        callbacksRef.current.onSealActivate();
+        callbacksRef.current.onSealActivate?.();
+      }
+    };
+
+    const handlePointerCancel = (event) => {
+      const isTargetPointer = drag.pointerId === null || drag.pointerId === event.pointerId;
+
+      if (isTargetPointer && container.hasPointerCapture?.(event.pointerId)) {
+        try {
+          container.releasePointerCapture(event.pointerId);
+        } catch {
+          // Ignore
+        }
+      }
+
+      if (isTargetPointer) {
+        drag.isPointerDown = false;
+        drag.dragMoved = false;
+        drag.pointerId = null;
       }
     };
 
@@ -308,8 +407,10 @@ export default function PreloaderCanvas({
       }
     };
 
+    container.addEventListener('pointerdown', handlePointerDown);
     container.addEventListener('pointermove', handlePointerMove, { passive: true });
     container.addEventListener('pointerup', handlePointerUp, { passive: true });
+    container.addEventListener('pointercancel', handlePointerCancel, { passive: true });
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -317,8 +418,10 @@ export default function PreloaderCanvas({
         cancelAnimationFrame(state.frameId);
         state.frameId = 0;
       }
+      container.removeEventListener('pointerdown', handlePointerDown);
       container.removeEventListener('pointermove', handlePointerMove);
       container.removeEventListener('pointerup', handlePointerUp);
+      container.removeEventListener('pointercancel', handlePointerCancel);
       window.removeEventListener('resize', handleResize);
       gsap.killTweensOf([
         envelope.group.rotation,
@@ -383,8 +486,10 @@ export default function PreloaderCanvas({
 
       if (!state.didFlip && !state.didOpen) {
         state.envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
-        state.envelope.group.rotation.x = state.mouse.y * 0.08;
-        state.envelope.group.rotation.y += (state.mouse.x * 0.16 - state.envelope.group.rotation.y) * 0.03;
+        const targetPitch = state.drag.pitch + state.mouse.y * 0.08;
+        const targetYaw = state.drag.yaw + state.mouse.x * 0.12;
+        state.envelope.group.rotation.x += (targetPitch - state.envelope.group.rotation.x) * 0.1;
+        state.envelope.group.rotation.y += (targetYaw - state.envelope.group.rotation.y) * 0.1;
       }
       state.dust.points.rotation.y += 0.0007;
 
@@ -428,11 +533,17 @@ export default function PreloaderCanvas({
       return undefined;
     }
 
+    if (state.drag) {
+      state.drag.isPointerDown = false;
+      state.drag.dragMoved = false;
+      state.drag.pointerId = null;
+    }
+
     if (reducedMotion) {
       state.didFlip = true;
       lifecycle.flipStarted = true;
       lifecycle.flipComplete = true;
-      state.envelope.group.rotation.y = Math.PI;
+      state.envelope.group.rotation.set(0, Math.PI, 0);
       state.flipComplete = true;
       callbacksRef.current.onSealReady();
       state.renderer.render(state.scene, state.camera);
@@ -441,6 +552,12 @@ export default function PreloaderCanvas({
 
     state.didFlip = true;
     lifecycle.flipStarted = true;
+
+    const tweenX = gsap.to(state.envelope.group.rotation, {
+      x: 0,
+      duration: 0.8,
+      ease: 'power2.out',
+    });
 
     const tween = gsap.to(state.envelope.group.rotation, {
       y: Math.PI,
@@ -467,6 +584,7 @@ export default function PreloaderCanvas({
     });
 
     return () => {
+      tweenX.kill();
       tween.kill();
       if (state.envelope?.seal?.scale) {
         gsap.killTweensOf(state.envelope.seal.scale);

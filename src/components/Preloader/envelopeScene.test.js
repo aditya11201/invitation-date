@@ -4,6 +4,11 @@ import * as THREE from 'three';
 import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
+  ENVELOPE_DRAG_LIMITS,
+  DRAG_THRESHOLD_PX,
+  clampDragRotation,
+  computeDragRotation,
+  isDragMovement,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -185,4 +190,43 @@ test('ensures wax seal heart relief is oriented upright when envelope is sealed 
   );
 
   envelope.dispose();
+});
+
+test('clampDragRotation clamps yaw and pitch within bounded ranges', () => {
+  const inside = clampDragRotation(0.2, -0.3);
+  assert.equal(inside.yaw, 0.2);
+  assert.equal(inside.pitch, -0.3);
+
+  const overflowPositive = clampDragRotation(5, 5);
+  assert.equal(overflowPositive.yaw, ENVELOPE_DRAG_LIMITS.maxYaw);
+  assert.equal(overflowPositive.pitch, ENVELOPE_DRAG_LIMITS.maxPitch);
+
+  const overflowNegative = clampDragRotation(-5, -5);
+  assert.equal(overflowNegative.yaw, ENVELOPE_DRAG_LIMITS.minYaw);
+  assert.equal(overflowNegative.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+
+  const invalid = clampDragRotation(NaN, undefined);
+  assert.equal(invalid.yaw, 0);
+  assert.equal(invalid.pitch, 0);
+});
+
+test('computeDragRotation updates rotation from start coordinates and delta', () => {
+  const result = computeDragRotation({
+    startYaw: 0.1,
+    startPitch: -0.1,
+    deltaX: 50,
+    deltaY: -30,
+    sensitivity: 0.004,
+  });
+
+  assert.equal(result.yaw, 0.1 + 50 * 0.004);
+  assert.equal(result.pitch, -0.1 + -30 * 0.004);
+});
+
+test('isDragMovement distinguishes clicks from drag gestures via threshold', () => {
+  assert.equal(isDragMovement(0, 0), false);
+  assert.equal(isDragMovement(3, 4), false); // hypot = 5 <= 6
+  assert.equal(isDragMovement(DRAG_THRESHOLD_PX, 0), false);
+  assert.equal(isDragMovement(0, DRAG_THRESHOLD_PX + 1), true);
+  assert.equal(isDragMovement(10, 10), true);
 });
