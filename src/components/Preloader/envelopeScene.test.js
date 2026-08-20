@@ -127,3 +127,14 @@ test('provides visible seal relief on both original and flipped facing states', 
   envelope.dispose();
 });
 
+test('matches the reference flap materials and top flap orientation', () => {
+  const envelope = createEnvelopeScene();
+  const bottomFlap = envelope.group.getObjectByName('preloader-envelope-bottom-flap');
+  const topFlap = envelope.group.getObjectByName('preloader-envelope-top-flap');
+
+  assert.equal(bottomFlap.material.color.getHex(), 0x7a1126);
+  assert.equal(topFlap.material.color.getHex(), 0x540a18);
+  assert.equal(topFlap.rotation.y, Math.PI);
+
+  envelope.dispose();
+});

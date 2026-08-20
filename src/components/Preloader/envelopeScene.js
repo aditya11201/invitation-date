@@ -95,7 +95,7 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   letter.rotation.y = Math.PI;
   group.add(letter);
 
-  const bottomFlap = new THREE.Mesh(createTriangleGeometry(3.6, 1.3), deepBodyMaterial);
+  const bottomFlap = new THREE.Mesh(createTriangleGeometry(3.6, 1.3), bodyMaterial);
   bottomFlap.name = 'preloader-envelope-bottom-flap';
   bottomFlap.position.set(0, -1.2, -0.04);
   bottomFlap.rotation.y = Math.PI;
@@ -115,8 +115,9 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   topFlapPivot.name = 'preloader-envelope-top-flap-pivot';
   topFlapPivot.position.set(0, 1.2, -0.04);
 
-  const topFlap = new THREE.Mesh(createTriangleGeometry(3.6, -1.35), bodyMaterial);
+  const topFlap = new THREE.Mesh(createTriangleGeometry(3.6, -1.35), deepBodyMaterial);
   topFlap.name = 'preloader-envelope-top-flap';
+  topFlap.rotation.y = Math.PI;
   topFlapPivot.add(topFlap);
 
   const seal = new THREE.Group();
