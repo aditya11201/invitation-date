@@ -139,3 +139,50 @@ test('matches the reference flap materials and top flap orientation', () => {
 
   envelope.dispose();
 });
+
+test('ensures wax seal heart relief is oriented upright when envelope is sealed and flipped', () => {
+  const envelope = createEnvelopeScene();
+
+  // Flipped facing state (rotation.y = Math.PI, showing seal side to camera)
+  envelope.group.rotation.y = Math.PI;
+  envelope.group.updateMatrixWorld(true);
+
+  const reliefBack = envelope.group.getObjectByName('preloader-envelope-seal-relief-back');
+  assert.ok(reliefBack, 'Expected preloader-envelope-seal-relief-back mesh');
+
+  const positionAttr = reliefBack.geometry.attributes.position;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  let bottomVertexWorld = null;
+  let topVertexWorld = null;
+
+  for (let i = 0; i < positionAttr.count; i++) {
+    const vertex = new THREE.Vector3().fromBufferAttribute(positionAttr, i);
+    vertex.applyMatrix4(reliefBack.matrixWorld);
+
+    if (vertex.y < minY) {
+      minY = vertex.y;
+      bottomVertexWorld = vertex;
+    }
+    if (vertex.y > maxY) {
+      maxY = vertex.y;
+      topVertexWorld = vertex;
+    }
+  }
+
+  const sealCenterWorld = new THREE.Vector3();
+  envelope.sealMesh.getWorldPosition(sealCenterWorld);
+
+  // An upright heart has its pointed apex centered at the bottom (x ≈ 0)
+  // and its lobes separated at the top (|x| > 0)
+  assert.ok(
+    Math.abs(bottomVertexWorld.x - sealCenterWorld.x) < 0.05,
+    'Heart bottom vertex (apex point) must be horizontally centered'
+  );
+  assert.ok(
+    Math.abs(topVertexWorld.x - sealCenterWorld.x) > 0.08,
+    'Heart top vertex (lobe) must be offset horizontally from center'
+  );
+
+  envelope.dispose();
+});

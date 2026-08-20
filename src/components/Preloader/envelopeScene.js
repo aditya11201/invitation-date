@@ -50,12 +50,15 @@ function createHeartReliefGeometry() {
   shape.bezierCurveTo(0.38, -0.02, 0.18, -0.24, 0, -0.09);
   shape.closePath();
 
-  return new THREE.ExtrudeGeometry(shape, {
+  const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: 0.025,
     bevelEnabled: true,
     bevelSize: 0.01,
     bevelThickness: 0.01,
   });
+  geometry.center();
+  geometry.rotateZ(Math.PI);
+  return geometry;
 }
 
 /**
