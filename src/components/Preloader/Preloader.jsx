@@ -86,7 +86,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
       if (startedRef.current) return;
       startedRef.current = true;
       onStart();
-    }, reducedMotion ? 80 : 520);
+    }, reducedMotion ? 80 : 640);
   };
 
   return (
