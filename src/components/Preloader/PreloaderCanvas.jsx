@@ -9,6 +9,7 @@ import {
   clampPointerPosition,
   computeDragRotation,
   computeEnvelopeTargetRotation,
+  getBaseYaw,
   ENVELOPE_OPEN_FINAL_STATE,
   isActivePointer,
   isPrimaryPointerDown,
@@ -375,7 +376,9 @@ export default function PreloaderCanvas({
         drag.dragMoved = true;
       }
 
-      if (!state.didFlip && !state.didOpen && drag.dragMoved) {
+      const canDrag = !state.didOpen && (!state.didFlip || state.flipComplete);
+
+      if (canDrag && drag.dragMoved) {
         const computed = computeDragRotation({
           startYaw: drag.startYaw,
           startPitch: drag.startPitch,
@@ -386,6 +389,21 @@ export default function PreloaderCanvas({
         });
         drag.yaw = computed.yaw;
         drag.pitch = computed.pitch;
+      }
+
+      if (reducedMotionRef.current && canDrag && drag.dragMoved) {
+        const baseYaw = getBaseYaw(state);
+        const targetRotation = computeEnvelopeTargetRotation({
+          baseYaw,
+          dragYaw: drag.yaw,
+          dragPitch: drag.pitch,
+          hoverX: 0,
+          hoverY: 0,
+          limits: ENVELOPE_DRAG_LIMITS,
+        });
+        envelope.group.rotation.x = targetRotation.pitch;
+        envelope.group.rotation.y = targetRotation.yaw;
+        renderer.render(scene, camera);
       }
     };
 
@@ -553,9 +571,13 @@ export default function PreloaderCanvas({
       state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.05;
       state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.05;
 
-      if (!state.didFlip && !state.didOpen) {
+      const canAnimateEnvelope = !state.didOpen && (!state.didFlip || state.flipComplete);
+
+      if (canAnimateEnvelope) {
         state.envelope.group.position.y = Math.sin(elapsed * 1.2) * 0.08;
+        const baseYaw = getBaseYaw(state);
         const targetRotation = computeEnvelopeTargetRotation({
+          baseYaw,
           dragYaw: state.drag.yaw,
           dragPitch: state.drag.pitch,
           hoverX: state.mouse.x,
@@ -608,6 +630,8 @@ export default function PreloaderCanvas({
     }
 
     state.resetDrag();
+    state.drag.yaw = 0;
+    state.drag.pitch = 0;
 
     if (reducedMotion) {
       state.didFlip = true;
@@ -640,6 +664,8 @@ export default function PreloaderCanvas({
 
         lifecycle.flipComplete = true;
         state.flipComplete = true;
+        state.drag.yaw = 0;
+        state.drag.pitch = 0;
         callbacksRef.current.onSealReady();
 
         gsap.to(state.envelope.seal.scale, {
@@ -688,6 +714,10 @@ export default function PreloaderCanvas({
     if (state.openComplete) {
       return undefined;
     }
+
+    state.resetDrag();
+    state.drag.yaw = 0;
+    state.drag.pitch = 0;
 
     if (reducedMotion) {
       state.didOpen = true;

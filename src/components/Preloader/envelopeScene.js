@@ -46,6 +46,10 @@ export function isSealReady({ flipComplete = false, didOpen = false } = {}) {
   return Boolean(flipComplete && !didOpen);
 }
 
+export function getBaseYaw({ flipComplete = false, isFlipped = false } = {}) {
+  return (flipComplete || isFlipped) ? Math.PI : 0;
+}
+
 export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
   const safeYaw = typeof yaw === 'number' && Number.isFinite(yaw) ? yaw : 0;
   const safePitch = typeof pitch === 'number' && Number.isFinite(pitch) ? pitch : 0;
@@ -78,6 +82,7 @@ export function computeDragRotation({
 }
 
 export function computeEnvelopeTargetRotation({
+  baseYaw = 0,
   dragYaw = 0,
   dragPitch = 0,
   hoverX = 0,
@@ -86,11 +91,15 @@ export function computeEnvelopeTargetRotation({
   hoverPitch = 0.08,
   limits = ENVELOPE_DRAG_LIMITS,
 } = {}) {
-  return clampDragRotation(
+  const clamped = clampDragRotation(
     dragYaw + hoverX * hoverYaw,
     dragPitch + hoverY * hoverPitch,
     limits,
   );
+  return {
+    yaw: baseYaw + clamped.yaw,
+    pitch: clamped.pitch,
+  };
 }
 
 export function isDragMovement(deltaX, deltaY, threshold = DRAG_THRESHOLD_PX) {

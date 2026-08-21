@@ -9,6 +9,7 @@ import {
   clampDragRotation,
   computeDragRotation,
   computeEnvelopeTargetRotation,
+  getBaseYaw,
   clampPointerPosition,
   isDragMovement,
   shouldActivateSeal,
@@ -300,4 +301,48 @@ test('records seal starts only after the scripted flip is complete', () => {
   assert.equal(isSealReady({ flipComplete: true, didOpen: false }), true);
   assert.equal(isSealReady({ flipComplete: false, didOpen: false }), false);
   assert.equal(isSealReady({ flipComplete: true, didOpen: true }), false);
+});
+
+test('getBaseYaw returns 0 before flip completion and Math.PI when flipped', () => {
+  assert.equal(getBaseYaw({ flipComplete: false }), 0);
+  assert.equal(getBaseYaw({ flipComplete: true }), Math.PI);
+  assert.equal(getBaseYaw({ isFlipped: true }), Math.PI);
+  assert.equal(getBaseYaw(), 0);
+});
+
+test('computeEnvelopeTargetRotation resolves post-flip neutral offset to Math.PI', () => {
+  const result = computeEnvelopeTargetRotation({
+    baseYaw: Math.PI,
+    dragYaw: 0,
+    dragPitch: 0,
+    hoverX: 0,
+    hoverY: 0,
+  });
+
+  assert.equal(result.yaw, Math.PI);
+  assert.equal(result.pitch, 0);
+});
+
+test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds relative to Math.PI', () => {
+  const resultMax = computeEnvelopeTargetRotation({
+    baseYaw: Math.PI,
+    dragYaw: 5,
+    dragPitch: 5,
+    hoverX: 0,
+    hoverY: 0,
+  });
+
+  assert.equal(resultMax.yaw, Math.PI + ENVELOPE_DRAG_LIMITS.maxYaw);
+  assert.equal(resultMax.pitch, ENVELOPE_DRAG_LIMITS.maxPitch);
+
+  const resultMin = computeEnvelopeTargetRotation({
+    baseYaw: Math.PI,
+    dragYaw: -5,
+    dragPitch: -5,
+    hoverX: 0,
+    hoverY: 0,
+  });
+
+  assert.equal(resultMin.yaw, Math.PI + ENVELOPE_DRAG_LIMITS.minYaw);
+  assert.equal(resultMin.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
 });
