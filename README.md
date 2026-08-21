@@ -8,7 +8,7 @@ Transforms asking your partner on a date into a cinematic, personal, and unforge
 
 ## ✨ Experience Journey
 
-1. **Scene 0 — 3D Preloader**: Procedural Three.js envelope with burgundy stationery, ivory lining, metallic-gold seal, narrative progress, and an entry gesture that unlocks audio autoplay.
+1. **Scene 0 — 3D Preloader**: Procedural Three.js 3D interactive envelope with continuous multi-directional orbit, romantic pink stationery, ivory lining, wax seal, narrative progress, and an entry gesture unlocking audio autoplay.
 2. **Scene 1 — Hero Greeting**: Dynamic Three.js WebGL love bubble hearts environment with handwriting reveal copy.
 3. **Scene 2 & 3 — Realistic 3D Paper Envelope & Letter**: Envelope unseals with realistic paper physics, letter extracts and reveals heartfelt paragraphs in a staged sequence.
 4. **Scene 4 — YES / NO Gimmick**: Scroll locks at the proposal question. The playful NO button can be clicked up to 5 times, each time enlarging the YES button until it takes over the screen.
