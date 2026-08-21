@@ -15,8 +15,8 @@ export function getEnvelopeCameraDistance(viewportWidth) {
 export const ENVELOPE_DRAG_LIMITS = Object.freeze({
   minPitch: -Math.PI / 5,
   maxPitch: Math.PI / 5,
-  minYaw: -Math.PI / 2.2,
-  maxYaw: Math.PI / 2.2,
+  minYaw: -Math.PI,
+  maxYaw: Math.PI,
 });
 
 export const DRAG_THRESHOLD_PX = 6;

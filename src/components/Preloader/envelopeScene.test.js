@@ -325,6 +325,26 @@ test('computeEnvelopeTargetRotation resolves post-flip neutral offset to Math.PI
 });
 
 test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds relative to Math.PI', () => {
+  const resultRotateRightToFront = computeEnvelopeTargetRotation({
+    baseYaw: Math.PI,
+    dragYaw: Math.PI,
+    dragPitch: 0,
+    hoverX: 0,
+    hoverY: 0,
+  });
+  assert.equal(resultRotateRightToFront.yaw, 2 * Math.PI);
+  assert.equal(resultRotateRightToFront.pitch, 0);
+
+  const resultRotateLeftToFront = computeEnvelopeTargetRotation({
+    baseYaw: Math.PI,
+    dragYaw: -Math.PI,
+    dragPitch: 0,
+    hoverX: 0,
+    hoverY: 0,
+  });
+  assert.equal(resultRotateLeftToFront.yaw, 0);
+  assert.equal(resultRotateLeftToFront.pitch, 0);
+
   const resultMax = computeEnvelopeTargetRotation({
     baseYaw: Math.PI,
     dragYaw: 5,
@@ -333,7 +353,7 @@ test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds 
     hoverY: 0,
   });
 
-  assert.equal(resultMax.yaw, Math.PI + ENVELOPE_DRAG_LIMITS.maxYaw);
+  assert.equal(resultMax.yaw, 2 * Math.PI);
   assert.equal(resultMax.pitch, ENVELOPE_DRAG_LIMITS.maxPitch);
 
   const resultMin = computeEnvelopeTargetRotation({
@@ -344,7 +364,7 @@ test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds 
     hoverY: 0,
   });
 
-  assert.equal(resultMin.yaw, Math.PI + ENVELOPE_DRAG_LIMITS.minYaw);
+  assert.equal(resultMin.yaw, 0);
   assert.equal(resultMin.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
 });
 
