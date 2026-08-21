@@ -14,6 +14,7 @@ import {
   isDragMovement,
   shouldActivateSeal,
   ENVELOPE_OPEN_FINAL_STATE,
+  ENVELOPE_OPEN_TIMING,
   isActivePointer,
   isPrimaryPointerDown,
   isSealReady,
@@ -405,4 +406,11 @@ test('computeCanonicalOpenRotation returns pitch 0 and shortest-path yaw for ope
 
   assert.equal(rotation.x, 0);
   assert.equal(Math.abs(rotation.y - 7 * Math.PI) < 1e-10, true);
+});
+
+test('defines open animation timings where paper reveal starts only after neutral re-centering completes', () => {
+  assert.ok(ENVELOPE_OPEN_TIMING.recenterDuration > 0);
+  assert.ok(ENVELOPE_OPEN_TIMING.revealStartTime >= ENVELOPE_OPEN_TIMING.recenterDuration);
+  assert.ok(ENVELOPE_OPEN_TIMING.envelopeDescentStartTime > ENVELOPE_OPEN_TIMING.revealStartTime);
+  assert.ok(ENVELOPE_OPEN_TIMING.letterRiseStartTime >= ENVELOPE_OPEN_TIMING.envelopeDescentStartTime);
 });

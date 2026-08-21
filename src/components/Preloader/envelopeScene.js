@@ -24,6 +24,13 @@ export const ENVELOPE_OPEN_FINAL_STATE = Object.freeze({
   letterScale: 1.18 * 0.48,
 });
 
+export const ENVELOPE_OPEN_TIMING = Object.freeze({
+  recenterDuration: 0.45,
+  revealStartTime: 0.45,
+  envelopeDescentStartTime: 0.75,
+  letterRiseStartTime: 0.85,
+});
+
 export function isActivePointer(drag, pointerId) {
   return drag.isPointerDown && drag.pointerId === pointerId;
 }

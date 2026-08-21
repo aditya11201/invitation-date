@@ -11,6 +11,7 @@ import {
   computeCanonicalOpenRotation,
   getBaseYaw,
   ENVELOPE_OPEN_FINAL_STATE,
+  ENVELOPE_OPEN_TIMING,
   isActivePointer,
   isPrimaryPointerDown,
   isDragMovement,
@@ -764,7 +765,7 @@ export default function PreloaderCanvas({
       .to(state.envelope.group.rotation, {
         x: canonicalOpen.x,
         y: canonicalOpen.y,
-        duration: 0.45,
+        duration: ENVELOPE_OPEN_TIMING.recenterDuration,
         ease: 'power2.out',
       })
       .to(state.envelope.seal.scale, {
@@ -772,30 +773,30 @@ export default function PreloaderCanvas({
         y: ENVELOPE_OPEN_FINAL_STATE.sealScale,
         z: ENVELOPE_OPEN_FINAL_STATE.sealScale,
         duration: 0.2,
-      }, 0.35)
+      }, ENVELOPE_OPEN_TIMING.revealStartTime)
       .to(state.envelope.topFlapPivot.rotation, {
         x: ENVELOPE_OPEN_FINAL_STATE.topFlapRotationX,
         duration: 1.1,
         ease: 'back.out(1.8)',
-      }, 0.35)
+      }, ENVELOPE_OPEN_TIMING.revealStartTime)
       .to(state.envelope.group.position, {
         y: ENVELOPE_OPEN_FINAL_STATE.groupY,
         duration: 1.2,
         ease: 'power2.out',
-      }, 0.65)
+      }, ENVELOPE_OPEN_TIMING.envelopeDescentStartTime)
       .to(state.envelope.letterMesh.position, {
         y: ENVELOPE_OPEN_FINAL_STATE.letterY,
         z: ENVELOPE_OPEN_FINAL_STATE.letterZ,
         duration: 1.4,
         ease: 'power3.out',
-      }, 0.75)
+      }, ENVELOPE_OPEN_TIMING.letterRiseStartTime)
       .to(state.envelope.letterMesh.scale, {
         x: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         y: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         z: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         duration: 1.4,
         ease: 'back.out(1.4)',
-      }, 0.75);
+      }, ENVELOPE_OPEN_TIMING.letterRiseStartTime);
 
     return () => timeline.kill();
   }, [isOpening, reducedMotion, webGLAvailable, sceneGeneration]);
