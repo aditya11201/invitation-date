@@ -24,38 +24,38 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   const safeSender = senderName || 'Your Secret Admirer';
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = '#7a1126';
+  context.fillStyle = '#a34e5d';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.strokeStyle = '#f3ca7e';
-  context.lineWidth = 16;
+  context.strokeStyle = '#e3c9c4';
+  context.lineWidth = 14;
   context.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
 
-  context.strokeStyle = 'rgba(243, 202, 126, 0.3)';
-  context.lineWidth = 4;
+  context.strokeStyle = 'rgba(238, 231, 240, 0.45)';
+  context.lineWidth = 3.5;
   context.strokeRect(56, 56, canvas.width - 112, canvas.height - 112);
 
   // Stamp & Postmark
-  context.fillStyle = '#f3ca7e';
+  context.fillStyle = '#fcfbf7';
   context.fillRect(canvas.width - 280, 80, 200, 240);
-  context.fillStyle = '#7a1126';
+  context.fillStyle = '#6e3547';
   context.font = "bold 40px 'Plus Jakarta Sans', sans-serif";
   context.textAlign = 'center';
   context.fillText('VIP PASS', canvas.width - 180, 180);
   context.fillText(String(year || 2026), canvas.width - 180, 240);
 
   // Addresses & Main Headline
-  context.fillStyle = '#fce8f3';
+  context.fillStyle = '#eee7f0';
   context.textAlign = 'left';
   context.font = "italic 44px 'Cormorant Garamond', Georgia, serif";
   context.fillText(`FROM: ${safeSender}`, 100, 140);
   context.font = "bold 64px 'Cormorant Garamond', Georgia, serif";
   context.fillText(`TO: ${safeRecipient} ✨`, 100, 260);
 
-  context.fillStyle = '#f3ca7e';
+  context.fillStyle = '#fefefe';
   context.font = "bold 68px 'Cormorant Garamond', Georgia, serif";
   context.fillText(headline || 'A Sealed Secret', 100, 520);
-  context.fillStyle = '#ff75a0';
+  context.fillStyle = '#fbcfe8';
   context.font = "italic 64px 'Cormorant Garamond', Georgia, serif";
   context.fillText(subtext || 'is waiting for you...', 100, 620);
 }
@@ -112,10 +112,10 @@ function createDustField() {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const material = new THREE.PointsMaterial({
-    color: 0xf3ca7e,
-    size: 0.06,
+    color: 0xd69a99,
+    size: 0.055,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.65,
   });
 
   return {
@@ -190,7 +190,7 @@ export default function PreloaderCanvas({
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x170308, 0.025);
+    scene.fog = new THREE.FogExp2(0xf6f2ed, 0.018);
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 0, getEnvelopeCameraDistance(width));
 
@@ -249,13 +249,13 @@ export default function PreloaderCanvas({
       applyOpenFinalState(envelope);
     }
 
-    scene.add(new THREE.AmbientLight(0xfff0f5, 1.3));
+    scene.add(new THREE.AmbientLight(0xfff5f8, 1.45));
 
-    const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.2);
+    const keyLight = new THREE.DirectionalLight(0xfff8ee, 2.1);
     keyLight.position.set(4, 6, 5);
     scene.add(keyLight);
 
-    const roseLight = new THREE.PointLight(0xff75a0, 2.5, 15);
+    const roseLight = new THREE.PointLight(0xf472b6, 2.4, 18);
     roseLight.position.set(-3, -2, 3);
     scene.add(roseLight);
 

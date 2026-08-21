@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
 const palette = Object.freeze({
-  body: 0x7a1126,
-  bodyDeep: 0x540a18,
-  lining: 0xf0e7e2,
+  body: 0xa34e5d,
+  bodyDeep: 0x6e3547,
+  lining: 0xeee7f0,
   paper: 0xfcfbf7,
-  gold: 0xf3ca7e,
+  seal: 0x873f50,
+  relief: 0xf472b6,
 });
 
 export function getEnvelopeCameraDistance(viewportWidth) {
@@ -184,13 +185,13 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   const group = new THREE.Group();
   group.name = 'preloader-envelope';
 
-  const bodyMaterial = new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.4, metalness: 0.15 });
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.45, metalness: 0.1 });
   const deepBodyMaterial = new THREE.MeshStandardMaterial({ color: palette.bodyDeep, roughness: 0.5, metalness: 0.1 });
   const liningMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.65 });
-  const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.58 });
-  const frontMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coverTexture, roughness: 0.4, metalness: 0.05 });
-  const waxMaterial = new THREE.MeshStandardMaterial({ color: palette.gold, roughness: 0.25, metalness: 0.85 });
-  const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.gold, roughness: 0.25, metalness: 0.85 });
+  const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.6 });
+  const frontMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coverTexture, roughness: 0.45, metalness: 0.05 });
+  const waxMaterial = new THREE.MeshStandardMaterial({ color: palette.seal, roughness: 0.35, metalness: 0.25 });
+  const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.relief, roughness: 0.28, metalness: 0.4 });
 
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.3), liningMaterial);
   inner.name = 'preloader-envelope-inner';
