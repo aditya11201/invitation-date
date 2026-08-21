@@ -58,6 +58,25 @@ export function sanitizeRotation(value, fallback = 0) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
+export function getShortestPathYaw(currentYaw = 0, targetBaseYaw = Math.PI) {
+  const safeCurrentYaw = sanitizeRotation(currentYaw);
+  const safeTargetBaseYaw = sanitizeRotation(targetBaseYaw, Math.PI);
+  const delta = (safeTargetBaseYaw - safeCurrentYaw) % (2 * Math.PI);
+  const normalizedDelta = ((delta + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+  return safeCurrentYaw + normalizedDelta;
+}
+
+export function computeCanonicalOpenRotation({
+  currentYaw = Math.PI,
+  currentPitch = 0,
+  targetBaseYaw = Math.PI,
+} = {}) {
+  return {
+    x: 0,
+    y: getShortestPathYaw(currentYaw, targetBaseYaw),
+  };
+}
+
 export function clampDragRotation(yaw, pitch) {
   return {
     yaw: sanitizeRotation(yaw),

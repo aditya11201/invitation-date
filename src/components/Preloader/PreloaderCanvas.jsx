@@ -8,6 +8,7 @@ import {
   clampPointerPosition,
   computeDragRotation,
   computeEnvelopeTargetRotation,
+  computeCanonicalOpenRotation,
   getBaseYaw,
   ENVELOPE_OPEN_FINAL_STATE,
   isActivePointer,
@@ -720,10 +721,17 @@ export default function PreloaderCanvas({
     state.drag.yaw = 0;
     state.drag.pitch = 0;
 
+    const canonicalOpen = computeCanonicalOpenRotation({
+      currentYaw: state.envelope.group.rotation.y,
+      currentPitch: state.envelope.group.rotation.x,
+      targetBaseYaw: Math.PI,
+    });
+
     if (reducedMotion) {
       state.didOpen = true;
       lifecycle.openStarted = true;
       lifecycle.openComplete = true;
+      state.envelope.group.rotation.set(0, Math.PI, 0);
       applyOpenFinalState(state.envelope);
       state.openComplete = true;
       callbacksRef.current.onOpenComplete();
@@ -734,7 +742,10 @@ export default function PreloaderCanvas({
     state.didOpen = true;
     lifecycle.openStarted = true;
 
-    gsap.killTweensOf(state.envelope.seal.scale);
+    gsap.killTweensOf([
+      state.envelope.seal.scale,
+      state.envelope.group.rotation,
+    ]);
     state.envelope.seal.scale.set(1, 1, 1);
 
     const timeline = gsap.timeline({
@@ -750,35 +761,41 @@ export default function PreloaderCanvas({
     });
 
     timeline
+      .to(state.envelope.group.rotation, {
+        x: canonicalOpen.x,
+        y: canonicalOpen.y,
+        duration: 0.45,
+        ease: 'power2.out',
+      })
       .to(state.envelope.seal.scale, {
         x: ENVELOPE_OPEN_FINAL_STATE.sealScale,
         y: ENVELOPE_OPEN_FINAL_STATE.sealScale,
         z: ENVELOPE_OPEN_FINAL_STATE.sealScale,
         duration: 0.2,
-      })
+      }, 0.35)
       .to(state.envelope.topFlapPivot.rotation, {
         x: ENVELOPE_OPEN_FINAL_STATE.topFlapRotationX,
         duration: 1.1,
         ease: 'back.out(1.8)',
-      }, '<')
+      }, 0.35)
       .to(state.envelope.group.position, {
         y: ENVELOPE_OPEN_FINAL_STATE.groupY,
         duration: 1.2,
         ease: 'power2.out',
-      }, 0.3)
+      }, 0.65)
       .to(state.envelope.letterMesh.position, {
         y: ENVELOPE_OPEN_FINAL_STATE.letterY,
         z: ENVELOPE_OPEN_FINAL_STATE.letterZ,
         duration: 1.4,
         ease: 'power3.out',
-      }, 0.4)
+      }, 0.75)
       .to(state.envelope.letterMesh.scale, {
         x: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         y: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         z: ENVELOPE_OPEN_FINAL_STATE.letterScale,
         duration: 1.4,
         ease: 'back.out(1.4)',
-      }, 0.4);
+      }, 0.75);
 
     return () => timeline.kill();
   }, [isOpening, reducedMotion, webGLAvailable, sceneGeneration]);

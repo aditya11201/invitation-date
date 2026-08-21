@@ -19,6 +19,8 @@ import {
   isSealReady,
   canArmPointerDown,
   shouldUpdatePointerHover,
+  getShortestPathYaw,
+  computeCanonicalOpenRotation,
 } from './envelopeScene.js';
 
 test('uses a wider camera distance on narrow screens', () => {
@@ -384,4 +386,23 @@ test('canArmPointerDown gates pointerdown during automatic flip or when opening'
   assert.equal(canArmPointerDown({ didFlip: true, flipComplete: true, didOpen: false }), true);
   assert.equal(canArmPointerDown({ didFlip: false, flipComplete: false, didOpen: true }), false);
   assert.equal(canArmPointerDown({ didFlip: true, flipComplete: true, didOpen: true }), false);
+});
+
+test('getShortestPathYaw resolves current yaw to nearest equivalent of Math.PI without extra full revolutions', () => {
+  assert.equal(getShortestPathYaw(Math.PI), Math.PI);
+  assert.equal(getShortestPathYaw(3 * Math.PI), 3 * Math.PI);
+  assert.equal(getShortestPathYaw(-5 * Math.PI), -5 * Math.PI);
+  assert.equal(Math.abs(getShortestPathYaw(3 * Math.PI + 0.4) - (3 * Math.PI)) < 1e-10, true);
+  assert.equal(Math.abs(getShortestPathYaw(-5 * Math.PI - 0.3) - (-5 * Math.PI)) < 1e-10, true);
+  assert.equal(Math.abs(getShortestPathYaw(0) - (-Math.PI)) < 1e-10, true);
+});
+
+test('computeCanonicalOpenRotation returns pitch 0 and shortest-path yaw for opening', () => {
+  const rotation = computeCanonicalOpenRotation({
+    currentYaw: 7 * Math.PI + 0.5,
+    currentPitch: 1.2,
+  });
+
+  assert.equal(rotation.x, 0);
+  assert.equal(Math.abs(rotation.y - 7 * Math.PI) < 1e-10, true);
 });
