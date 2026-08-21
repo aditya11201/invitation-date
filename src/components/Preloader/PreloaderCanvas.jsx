@@ -26,28 +26,28 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   const safeSender = senderName || 'Your Secret Admirer';
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = '#6e3547';
+  context.fillStyle = '#ec4899';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.strokeStyle = '#f0e7e2';
+  context.strokeStyle = '#fce7f3';
   context.lineWidth = 14;
   context.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
 
-  context.strokeStyle = 'rgba(238, 231, 240, 0.45)';
+  context.strokeStyle = 'rgba(255, 255, 255, 0.45)';
   context.lineWidth = 3.5;
   context.strokeRect(56, 56, canvas.width - 112, canvas.height - 112);
 
   // Stamp & Postmark
   context.fillStyle = '#fcfbf7';
   context.fillRect(canvas.width - 280, 80, 200, 240);
-  context.fillStyle = '#3b202c';
+  context.fillStyle = '#db2777';
   context.font = "bold 40px 'Plus Jakarta Sans', sans-serif";
   context.textAlign = 'center';
   context.fillText('VIP PASS', canvas.width - 180, 180);
   context.fillText(String(year || 2026), canvas.width - 180, 240);
 
   // Addresses & Main Headline
-  context.fillStyle = '#ded1e3';
+  context.fillStyle = '#fce7f3';
   context.textAlign = 'left';
   context.font = "italic 44px 'Cormorant Garamond', Georgia, serif";
   context.fillText(`FROM: ${safeSender}`, 100, 140);
@@ -57,7 +57,7 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   context.fillStyle = '#ffffff';
   context.font = "bold 68px 'Cormorant Garamond', Georgia, serif";
   context.fillText(headline || 'A Sealed Secret', 100, 520);
-  context.fillStyle = '#f472b6';
+  context.fillStyle = '#fce7f3';
   context.font = "italic 64px 'Cormorant Garamond', Georgia, serif";
   context.fillText(subtext || 'is waiting for you...', 100, 620);
 }

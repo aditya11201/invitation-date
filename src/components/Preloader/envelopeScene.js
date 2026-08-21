@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
 const palette = Object.freeze({
-  body: 0x6e3547,
-  bodyDeep: 0x3b202c,
-  lining: 0xeee7f0,
+  body: 0xec4899,
+  bodyDeep: 0xdb2777,
+  lining: 0xfce7f3,
   paper: 0xfcfbf7,
-  seal: 0x873f50,
-  relief: 0xf472b6,
+  seal: 0xf472b6,
+  relief: 0xdb2777,
 });
 
 export function getEnvelopeCameraDistance(viewportWidth) {
