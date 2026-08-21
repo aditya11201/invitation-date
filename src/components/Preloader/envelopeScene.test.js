@@ -4,8 +4,8 @@ import * as THREE from 'three';
 import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
-  ENVELOPE_DRAG_LIMITS,
   DRAG_THRESHOLD_PX,
+  sanitizeRotation,
   clampDragRotation,
   computeDragRotation,
   computeEnvelopeTargetRotation,
@@ -202,35 +202,43 @@ test('ensures wax seal heart relief is oriented upright when envelope is sealed 
   envelope.dispose();
 });
 
-test('clampDragRotation clamps yaw and pitch within bounded ranges', () => {
+test('sanitizeRotation sanitizes finite numbers and provides fallback', () => {
+  assert.equal(sanitizeRotation(5), 5);
+  assert.equal(sanitizeRotation(-10.5), -10.5);
+  assert.equal(sanitizeRotation(NaN), 0);
+  assert.equal(sanitizeRotation(Infinity, 1), 1);
+  assert.equal(sanitizeRotation(undefined, 0.5), 0.5);
+});
+
+test('clampDragRotation sanitizes finite numbers and allows continuous rotation', () => {
   const inside = clampDragRotation(0.2, -0.3);
   assert.equal(inside.yaw, 0.2);
   assert.equal(inside.pitch, -0.3);
 
-  const overflowPositive = clampDragRotation(5, 5);
-  assert.equal(overflowPositive.yaw, ENVELOPE_DRAG_LIMITS.maxYaw);
-  assert.equal(overflowPositive.pitch, ENVELOPE_DRAG_LIMITS.maxPitch);
+  const largePositive = clampDragRotation(4 * Math.PI, 3 * Math.PI);
+  assert.equal(largePositive.yaw, 4 * Math.PI);
+  assert.equal(largePositive.pitch, 3 * Math.PI);
 
-  const overflowNegative = clampDragRotation(-5, -5);
-  assert.equal(overflowNegative.yaw, ENVELOPE_DRAG_LIMITS.minYaw);
-  assert.equal(overflowNegative.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+  const largeNegative = clampDragRotation(-4 * Math.PI, -3 * Math.PI);
+  assert.equal(largeNegative.yaw, -4 * Math.PI);
+  assert.equal(largeNegative.pitch, -3 * Math.PI);
 
   const invalid = clampDragRotation(NaN, undefined);
   assert.equal(invalid.yaw, 0);
   assert.equal(invalid.pitch, 0);
 });
 
-test('computeDragRotation updates rotation from start coordinates and delta', () => {
+test('computeDragRotation updates rotation continuously without clamping past 2pi', () => {
   const result = computeDragRotation({
-    startYaw: 0.1,
-    startPitch: -0.1,
-    deltaX: 50,
-    deltaY: -30,
+    startYaw: 2 * Math.PI,
+    startPitch: -2 * Math.PI,
+    deltaX: 1000,
+    deltaY: -1000,
     sensitivity: 0.004,
   });
 
-  assert.equal(result.yaw, 0.1 + 50 * 0.004);
-  assert.equal(result.pitch, -0.1 + -30 * 0.004);
+  assert.equal(result.yaw, 2 * Math.PI + 1000 * 0.004);
+  assert.equal(result.pitch, -2 * Math.PI + -1000 * 0.004);
 });
 
 test('isDragMovement distinguishes clicks from drag gestures via threshold', () => {
@@ -248,16 +256,19 @@ test('clampPointerPosition keeps captured pointer coordinates inside normalized 
   assert.equal(position.y, -1);
 });
 
-test('computeEnvelopeTargetRotation clamps the combined drag and hover rotation', () => {
+test('computeEnvelopeTargetRotation blends continuous drag and hover rotation', () => {
   const result = computeEnvelopeTargetRotation({
-    dragYaw: ENVELOPE_DRAG_LIMITS.maxYaw - 0.01,
-    dragPitch: ENVELOPE_DRAG_LIMITS.minPitch + 0.01,
+    baseYaw: 0,
+    dragYaw: 3 * Math.PI,
+    dragPitch: 2 * Math.PI,
     hoverX: 1,
     hoverY: -1,
+    hoverYaw: 0.12,
+    hoverPitch: 0.08,
   });
 
-  assert.equal(result.yaw, ENVELOPE_DRAG_LIMITS.maxYaw);
-  assert.equal(result.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+  assert.equal(result.yaw, 3 * Math.PI + 0.12);
+  assert.equal(result.pitch, 2 * Math.PI - 0.08);
 });
 
 test('shouldActivateSeal requires a seal start, seal release, and no drag movement', () => {
@@ -324,7 +335,7 @@ test('computeEnvelopeTargetRotation resolves post-flip neutral offset to Math.PI
   assert.equal(result.pitch, 0);
 });
 
-test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds relative to Math.PI', () => {
+test('computeEnvelopeTargetRotation allows continuous multi-revolution orbit beyond 2pi in all directions', () => {
   const resultRotateRightToFront = computeEnvelopeTargetRotation({
     baseYaw: Math.PI,
     dragYaw: Math.PI,
@@ -345,27 +356,26 @@ test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds 
   assert.equal(resultRotateLeftToFront.yaw, 0);
   assert.equal(resultRotateLeftToFront.pitch, 0);
 
-  const resultMax = computeEnvelopeTargetRotation({
+  // Multi-revolution yaw and pitch (beyond ±2pi)
+  const resultMultiRevPositive = computeEnvelopeTargetRotation({
     baseYaw: Math.PI,
-    dragYaw: 5,
-    dragPitch: 5,
+    dragYaw: 4 * Math.PI,
+    dragPitch: 4 * Math.PI,
     hoverX: 0,
     hoverY: 0,
   });
+  assert.equal(resultMultiRevPositive.yaw, 5 * Math.PI);
+  assert.equal(resultMultiRevPositive.pitch, 4 * Math.PI);
 
-  assert.equal(resultMax.yaw, 2 * Math.PI);
-  assert.equal(resultMax.pitch, ENVELOPE_DRAG_LIMITS.maxPitch);
-
-  const resultMin = computeEnvelopeTargetRotation({
+  const resultMultiRevNegative = computeEnvelopeTargetRotation({
     baseYaw: Math.PI,
-    dragYaw: -5,
-    dragPitch: -5,
+    dragYaw: -4 * Math.PI,
+    dragPitch: -4 * Math.PI,
     hoverX: 0,
     hoverY: 0,
   });
-
-  assert.equal(resultMin.yaw, 0);
-  assert.equal(resultMin.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+  assert.equal(resultMultiRevNegative.yaw, -3 * Math.PI);
+  assert.equal(resultMultiRevNegative.pitch, -4 * Math.PI);
 });
 
 test('canArmPointerDown gates pointerdown during automatic flip or when opening', () => {

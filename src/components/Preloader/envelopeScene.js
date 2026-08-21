@@ -12,13 +12,6 @@ export function getEnvelopeCameraDistance(viewportWidth) {
   return viewportWidth < 640 ? 8.5 : 7.2;
 }
 
-export const ENVELOPE_DRAG_LIMITS = Object.freeze({
-  minPitch: -Math.PI / 5,
-  maxPitch: Math.PI / 5,
-  minYaw: -Math.PI,
-  maxYaw: Math.PI,
-});
-
 export const DRAG_THRESHOLD_PX = 6;
 
 export const ENVELOPE_OPEN_FINAL_STATE = Object.freeze({
@@ -60,18 +53,20 @@ export function getBaseYaw({ flipComplete = false, isFlipped = false } = {}) {
   return (flipComplete || isFlipped) ? Math.PI : 0;
 }
 
-export function clampDragRotation(yaw, pitch, limits = ENVELOPE_DRAG_LIMITS) {
-  const safeYaw = typeof yaw === 'number' && Number.isFinite(yaw) ? yaw : 0;
-  const safePitch = typeof pitch === 'number' && Number.isFinite(pitch) ? pitch : 0;
+export function sanitizeRotation(value, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+export function clampDragRotation(yaw, pitch) {
   return {
-    yaw: THREE.MathUtils.clamp(safeYaw, limits.minYaw, limits.maxYaw),
-    pitch: THREE.MathUtils.clamp(safePitch, limits.minPitch, limits.maxPitch),
+    yaw: sanitizeRotation(yaw),
+    pitch: sanitizeRotation(pitch),
   };
 }
 
 export function clampPointerPosition(x, y) {
-  const safeX = typeof x === 'number' && Number.isFinite(x) ? x : 0;
-  const safeY = typeof y === 'number' && Number.isFinite(y) ? y : 0;
+  const safeX = sanitizeRotation(x);
+  const safeY = sanitizeRotation(y);
   return new THREE.Vector2(
     THREE.MathUtils.clamp(safeX, -1, 1),
     THREE.MathUtils.clamp(safeY, -1, 1),
@@ -84,11 +79,17 @@ export function computeDragRotation({
   deltaX = 0,
   deltaY = 0,
   sensitivity = 0.004,
-  limits = ENVELOPE_DRAG_LIMITS,
 } = {}) {
-  const nextYaw = startYaw + deltaX * sensitivity;
-  const nextPitch = startPitch + deltaY * sensitivity;
-  return clampDragRotation(nextYaw, nextPitch, limits);
+  const safeStartYaw = sanitizeRotation(startYaw);
+  const safeStartPitch = sanitizeRotation(startPitch);
+  const safeDeltaX = sanitizeRotation(deltaX);
+  const safeDeltaY = sanitizeRotation(deltaY);
+  const safeSensitivity = sanitizeRotation(sensitivity, 0.004);
+
+  return {
+    yaw: safeStartYaw + safeDeltaX * safeSensitivity,
+    pitch: safeStartPitch + safeDeltaY * safeSensitivity,
+  };
 }
 
 export function computeEnvelopeTargetRotation({
@@ -99,16 +100,18 @@ export function computeEnvelopeTargetRotation({
   hoverY = 0,
   hoverYaw = 0.12,
   hoverPitch = 0.08,
-  limits = ENVELOPE_DRAG_LIMITS,
 } = {}) {
-  const clamped = clampDragRotation(
-    dragYaw + hoverX * hoverYaw,
-    dragPitch + hoverY * hoverPitch,
-    limits,
-  );
+  const safeBaseYaw = sanitizeRotation(baseYaw);
+  const safeDragYaw = sanitizeRotation(dragYaw);
+  const safeDragPitch = sanitizeRotation(dragPitch);
+  const safeHoverX = sanitizeRotation(hoverX);
+  const safeHoverY = sanitizeRotation(hoverY);
+  const safeHoverYaw = sanitizeRotation(hoverYaw, 0.12);
+  const safeHoverPitch = sanitizeRotation(hoverPitch, 0.08);
+
   return {
-    yaw: baseYaw + clamped.yaw,
-    pitch: clamped.pitch,
+    yaw: safeBaseYaw + safeDragYaw + safeHoverX * safeHoverYaw,
+    pitch: safeDragPitch + safeHoverY * safeHoverPitch,
   };
 }
 

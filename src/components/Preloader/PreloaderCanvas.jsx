@@ -4,7 +4,6 @@ import gsap from 'gsap';
 import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
-  ENVELOPE_DRAG_LIMITS,
   DRAG_THRESHOLD_PX,
   clampPointerPosition,
   computeDragRotation,
@@ -390,7 +389,6 @@ export default function PreloaderCanvas({
           deltaX,
           deltaY,
           sensitivity: 0.004,
-          limits: ENVELOPE_DRAG_LIMITS,
         });
         drag.yaw = computed.yaw;
         drag.pitch = computed.pitch;
@@ -404,7 +402,6 @@ export default function PreloaderCanvas({
           dragPitch: drag.pitch,
           hoverX: 0,
           hoverY: 0,
-          limits: ENVELOPE_DRAG_LIMITS,
         });
         envelope.group.rotation.x = targetRotation.pitch;
         envelope.group.rotation.y = targetRotation.yaw;
@@ -587,7 +584,6 @@ export default function PreloaderCanvas({
           dragPitch: state.drag.pitch,
           hoverX: state.mouse.x,
           hoverY: state.mouse.y,
-          limits: ENVELOPE_DRAG_LIMITS,
         });
         state.envelope.group.rotation.x += (targetRotation.pitch - state.envelope.group.rotation.x) * 0.1;
         state.envelope.group.rotation.y += (targetRotation.yaw - state.envelope.group.rotation.y) * 0.1;
