@@ -15,6 +15,7 @@ import {
   isPrimaryPointerDown,
   isDragMovement,
   isSealReady,
+  canArmPointerDown,
   shouldActivateSeal,
   shouldUpdatePointerHover,
 } from './envelopeScene.js';
@@ -332,6 +333,10 @@ export default function PreloaderCanvas({
     };
 
     const handlePointerDown = (event) => {
+      if (!canArmPointerDown(state)) {
+        return;
+      }
+
       if (!isPrimaryPointerDown(event) || drag.isPointerDown || drag.pointerId !== null) {
         return;
       }

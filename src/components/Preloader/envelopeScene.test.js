@@ -17,6 +17,7 @@ import {
   isActivePointer,
   isPrimaryPointerDown,
   isSealReady,
+  canArmPointerDown,
   shouldUpdatePointerHover,
 } from './envelopeScene.js';
 
@@ -345,4 +346,12 @@ test('computeEnvelopeTargetRotation clamps post-flip drag offsets within bounds 
 
   assert.equal(resultMin.yaw, Math.PI + ENVELOPE_DRAG_LIMITS.minYaw);
   assert.equal(resultMin.pitch, ENVELOPE_DRAG_LIMITS.minPitch);
+});
+
+test('canArmPointerDown gates pointerdown during automatic flip or when opening', () => {
+  assert.equal(canArmPointerDown({ didFlip: false, flipComplete: false, didOpen: false }), true);
+  assert.equal(canArmPointerDown({ didFlip: true, flipComplete: false, didOpen: false }), false);
+  assert.equal(canArmPointerDown({ didFlip: true, flipComplete: true, didOpen: false }), true);
+  assert.equal(canArmPointerDown({ didFlip: false, flipComplete: false, didOpen: true }), false);
+  assert.equal(canArmPointerDown({ didFlip: true, flipComplete: true, didOpen: true }), false);
 });

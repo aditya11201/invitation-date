@@ -46,6 +46,16 @@ export function isSealReady({ flipComplete = false, didOpen = false } = {}) {
   return Boolean(flipComplete && !didOpen);
 }
 
+export function canArmPointerDown({ didFlip = false, flipComplete = false, didOpen = false } = {}) {
+  if (didOpen) {
+    return false;
+  }
+  if (didFlip && !flipComplete) {
+    return false;
+  }
+  return true;
+}
+
 export function getBaseYaw({ flipComplete = false, isFlipped = false } = {}) {
   return (flipComplete || isFlipped) ? Math.PI : 0;
 }
