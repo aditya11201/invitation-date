@@ -14,6 +14,21 @@ export const invitationConfig = {
     scrollPrompt: "Scroll down to open your letter"
   },
 
+  preloader: {
+    badge: "Express Delivery • For {{recipientName}}",
+    title: "A Sealed Secret for {{recipientName}}",
+    coverHeadline: "A Sealed Secret",
+    coverSubtext: "is waiting for you...",
+    sealHint: "Tap the gold seal on the envelope to open",
+    openLabel: "Open {{recipientName}}'s invitation",
+    phases: [
+      { start: 0, key: "crafting", message: "Folding a little note..." },
+      { start: 31, key: "writing", message: "Writing something just for {{recipientName}}..." },
+      { start: 66, key: "sealing", message: "Adding a touch of golden wax..." },
+      { start: 91, key: "ready", message: "Your invitation is ready!" }
+    ]
+  },
+
   letter: {
     tag: "A Note From My Heart 💌",
     greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",

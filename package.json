@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/components/Preloader/preloaderStages.test.js"
+    "test": "node --test src/components/Preloader/*.test.js"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
