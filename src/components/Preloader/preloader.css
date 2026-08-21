@@ -313,8 +313,8 @@
   aspect-ratio: 3 / 2;
   border: 1px solid rgba(214, 154, 153, 0.6);
   border-radius: 1rem;
-  background: linear-gradient(145deg, #a34e5d, #6e3547);
-  box-shadow: 0 2rem 3rem -1.5rem rgba(82, 44, 50, 0.35);
+  background: linear-gradient(145deg, #6e3547, #3b202c);
+  box-shadow: 0 2rem 3rem -1.5rem rgba(59, 32, 44, 0.35);
 }
 
 .preloader-canvas__fallback-letter {
@@ -333,7 +333,7 @@
 
 .preloader-canvas__fallback-letter span:nth-child(2) {
   margin-top: auto;
-  color: #a34e5d;
+  color: #6e3547;
   font-size: 1.35rem;
   font-weight: 700;
 }
@@ -343,7 +343,7 @@
   inset: 0 0 auto;
   z-index: 2;
   height: 62%;
-  background: linear-gradient(160deg, #bb6c71, #873f50);
+  background: linear-gradient(160deg, #873f50, #542b3a);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 

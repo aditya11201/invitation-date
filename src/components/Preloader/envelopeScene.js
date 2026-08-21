@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 const palette = Object.freeze({
-  body: 0xa34e5d,
-  bodyDeep: 0x6e3547,
+  body: 0x6e3547,
+  bodyDeep: 0x3b202c,
   lining: 0xeee7f0,
   paper: 0xfcfbf7,
   seal: 0x873f50,

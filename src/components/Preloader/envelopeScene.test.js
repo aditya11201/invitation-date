@@ -148,8 +148,8 @@ test('matches the reference flap materials and top flap orientation', () => {
   const bottomFlap = envelope.group.getObjectByName('preloader-envelope-bottom-flap');
   const topFlap = envelope.group.getObjectByName('preloader-envelope-top-flap');
 
-  assert.equal(bottomFlap.material.color.getHex(), 0xa34e5d);
-  assert.equal(topFlap.material.color.getHex(), 0x6e3547);
+  assert.equal(bottomFlap.material.color.getHex(), 0x6e3547);
+  assert.equal(topFlap.material.color.getHex(), 0x3b202c);
   assert.equal(topFlap.rotation.y, Math.PI);
 
   envelope.dispose();

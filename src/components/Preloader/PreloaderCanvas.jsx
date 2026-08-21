@@ -24,10 +24,10 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   const safeSender = senderName || 'Your Secret Admirer';
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = '#a34e5d';
+  context.fillStyle = '#6e3547';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.strokeStyle = '#e3c9c4';
+  context.strokeStyle = '#f0e7e2';
   context.lineWidth = 14;
   context.strokeRect(32, 32, canvas.width - 64, canvas.height - 64);
 
@@ -38,24 +38,24 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   // Stamp & Postmark
   context.fillStyle = '#fcfbf7';
   context.fillRect(canvas.width - 280, 80, 200, 240);
-  context.fillStyle = '#6e3547';
+  context.fillStyle = '#3b202c';
   context.font = "bold 40px 'Plus Jakarta Sans', sans-serif";
   context.textAlign = 'center';
   context.fillText('VIP PASS', canvas.width - 180, 180);
   context.fillText(String(year || 2026), canvas.width - 180, 240);
 
   // Addresses & Main Headline
-  context.fillStyle = '#eee7f0';
+  context.fillStyle = '#ded1e3';
   context.textAlign = 'left';
   context.font = "italic 44px 'Cormorant Garamond', Georgia, serif";
   context.fillText(`FROM: ${safeSender}`, 100, 140);
   context.font = "bold 64px 'Cormorant Garamond', Georgia, serif";
   context.fillText(`TO: ${safeRecipient} ✨`, 100, 260);
 
-  context.fillStyle = '#fefefe';
+  context.fillStyle = '#ffffff';
   context.font = "bold 68px 'Cormorant Garamond', Georgia, serif";
   context.fillText(headline || 'A Sealed Secret', 100, 520);
-  context.fillStyle = '#fbcfe8';
+  context.fillStyle = '#f472b6';
   context.font = "italic 64px 'Cormorant Garamond', Georgia, serif";
   context.fillText(subtext || 'is waiting for you...', 100, 620);
 }
@@ -112,10 +112,10 @@ function createDustField() {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const material = new THREE.PointsMaterial({
-    color: 0xd69a99,
-    size: 0.055,
+    color: 0x6e5878,
+    size: 0.08,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.8,
   });
 
   return {
