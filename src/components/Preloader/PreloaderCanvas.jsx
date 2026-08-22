@@ -102,6 +102,157 @@ function createCoverTexture({ recipientName, senderName, year, headline, subtext
   };
 }
 
+function wrapCanvasText(context, text, maxWidth) {
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+
+  words.forEach((word) => {
+    const candidate = line ? `${line} ${word}` : word;
+    if (!line || context.measureText(candidate).width <= maxWidth) {
+      line = candidate;
+    } else {
+      lines.push(line);
+      line = word;
+    }
+  });
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return lines;
+}
+
+/**
+ * Letter face mirroring the long paper sheet's identity (.paper-vertical-sheet):
+ * #FDFBF7 base, #e5dccb dot grain every 16px, vertical sheen overlay,
+ * warm gold hairline edge, rounded corners on transparency.
+ */
+function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPrompt, recipientName }) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const radius = 32;
+
+  // Fully transparent base — everything outside the roundRect stays clear.
+  context.clearRect(0, 0, width, height);
+
+  context.save();
+  context.beginPath();
+  context.roundRect(0, 0, width, height, radius);
+  context.fillStyle = '#FDFBF7';
+  context.fill();
+
+  // Dot grain clipped inside the paper path.
+  context.clip();
+  context.fillStyle = '#e5dccb';
+  for (let y = 8; y < height; y += 16) {
+    for (let x = 8; x < width; x += 16) {
+      context.beginPath();
+      context.arc(x, y, 0.7, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+
+  // Vertical sheen overlay.
+  const sheen = context.createLinearGradient(0, 0, 0, height);
+  sheen.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+  sheen.addColorStop(1, 'rgba(248, 242, 230, 0.4)');
+  context.fillStyle = sheen;
+  context.fillRect(0, 0, width, height);
+  context.restore();
+
+  // Subtle warm gold hairline (no drawn frame).
+  context.save();
+  context.beginPath();
+  context.roundRect(3, 3, width - 6, height - 6, radius);
+  context.strokeStyle = 'rgba(212, 163, 115, 0.35)';
+  context.lineWidth = 2;
+  context.stroke();
+  context.restore();
+
+  const centerX = width / 2;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+
+  // Caveat handwriting greeting.
+  context.font = "600 78px 'Caveat', cursive";
+  context.fillStyle = '#4D121D';
+  let cursorY = 250;
+  wrapCanvasText(context, greeting || `For ${recipientName} 💗`, 560).forEach((lineText) => {
+    context.fillText(lineText, centerX, cursorY);
+    cursorY += 92;
+  });
+
+  // Italic Playfair subtitle, 60px below the greeting block.
+  if (subtitle) {
+    context.font = "italic 36px 'Playfair Display', Georgia, serif";
+    context.fillStyle = 'rgba(42, 27, 24, 0.8)';
+    let subtitleY = cursorY - 92 + 60;
+    wrapCanvasText(context, subtitle, 520).forEach((lineText) => {
+      context.fillText(lineText, centerX, subtitleY);
+      subtitleY += 46;
+    });
+  }
+
+  // Uppercase scroll prompt near the bottom edge.
+  if (scrollPrompt) {
+    context.font = "700 20px 'Plus Jakarta Sans', sans-serif";
+    try {
+      context.letterSpacing = '3px';
+    } catch {
+      // ignore
+    }
+    context.fillStyle = '#7A2030';
+    context.fillText(String(scrollPrompt).toUpperCase(), centerX, height - 130);
+  }
+
+  try {
+    context.letterSpacing = '0px';
+  } catch {
+    // ignore
+  }
+}
+
+function createLetterTexture({ letterContent, onUpdate }) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 720;
+  canvas.height = 1013;
+  const context = canvas.getContext('2d');
+  const content = { ...letterContent };
+
+  drawLetterCanvas(context, canvas, content);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  let disposed = false;
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      if (disposed) {
+        return;
+      }
+
+      drawLetterCanvas(context, canvas, content);
+      texture.needsUpdate = true;
+      onUpdate?.();
+    });
+  }
+
+  return {
+    texture,
+    dispose() {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
+      texture.dispose();
+    },
+  };
+}
+
 function createDustField() {
   const pCount = 90;
   const positions = new Float32Array(pCount * 3);
@@ -114,17 +265,45 @@ function createDustField() {
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  // Soft heart sprites — keeps the preloader dust in the same love-particle
+  // visual language as the floating hearts behind the paper sections.
+  const spriteCanvas = document.createElement('canvas');
+  spriteCanvas.width = 64;
+  spriteCanvas.height = 64;
+  const spriteContext = spriteCanvas.getContext('2d');
+  spriteContext.translate(32, 34);
+  spriteContext.scale(2, 2);
+  spriteContext.beginPath();
+  spriteContext.moveTo(0, 9);
+  spriteContext.bezierCurveTo(-11, -1, -8, -12, 0, -6);
+  spriteContext.bezierCurveTo(8, -12, 11, -1, 0, 9);
+  spriteContext.closePath();
+  const spriteGradient = spriteContext.createRadialGradient(0, -2, 1, 0, -2, 12);
+  spriteGradient.addColorStop(0, 'rgba(244, 114, 182, 0.9)');
+  spriteGradient.addColorStop(1, 'rgba(244, 114, 182, 0.15)');
+  spriteContext.fillStyle = spriteGradient;
+  spriteContext.fill();
+
+  const heartSprite = new THREE.CanvasTexture(spriteCanvas);
+  heartSprite.colorSpace = THREE.SRGBColorSpace;
+
   const material = new THREE.PointsMaterial({
-    color: 0x6e5878,
-    size: 0.08,
+    map: heartSprite,
+    color: 0xffffff,
+    size: 0.16,
     transparent: true,
-    opacity: 0.8,
+    opacity: 0.55,
+    depthWrite: false,
+    alphaTest: 0.02,
+    sizeAttenuation: true,
   });
 
   return {
     points: new THREE.Points(geometry, material),
     geometry,
     material,
+    sprite: heartSprite,
   };
 }
 
@@ -152,10 +331,12 @@ export default function PreloaderCanvas({
   isSealReady: isSealReadyProp,
   reducedMotion,
   coverContent,
+  letterContent,
   openLabel,
   onSealReady,
   onSealActivate,
   onOpenComplete,
+  onLetterRect,
   onWebGLChange,
 }) {
   const {
@@ -167,7 +348,7 @@ export default function PreloaderCanvas({
   } = coverContent;
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
-  const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete, onWebGLChange });
+  const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete, onLetterRect, onWebGLChange });
   const reducedMotionRef = useRef(reducedMotion);
   const lifecycleRef = useRef({
     flipStarted: false,
@@ -181,7 +362,7 @@ export default function PreloaderCanvas({
   const fallbackOpenRef = useRef(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
 
-  callbacksRef.current = { onSealReady, onSealActivate, onOpenComplete, onWebGLChange };
+  callbacksRef.current = { onSealReady, onSealActivate, onOpenComplete, onLetterRect, onWebGLChange };
   reducedMotionRef.current = reducedMotion;
 
   useEffect(() => {
@@ -241,7 +422,18 @@ export default function PreloaderCanvas({
         }
       },
     });
-    const envelope = createEnvelopeScene({ coverTexture: coverTexture.texture });
+    const letterTexture = createLetterTexture({
+      letterContent: { ...letterContent, recipientName },
+      onUpdate: () => {
+        if (reducedMotionRef.current && sceneRef.current) {
+          sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
+        }
+      },
+    });
+    const envelope = createEnvelopeScene({
+      coverTexture: coverTexture.texture,
+      letterTexture: letterTexture.texture,
+    });
     const dust = createDustField();
     scene.add(envelope.group);
     scene.add(dust.points);
@@ -529,7 +721,9 @@ export default function PreloaderCanvas({
       ]);
       envelope.dispose();
       coverTexture.dispose();
+      letterTexture.dispose();
       dust.geometry.dispose();
+      if (dust.material.map) dust.material.map.dispose();
       dust.material.dispose();
       renderer.dispose();
 
@@ -539,7 +733,7 @@ export default function PreloaderCanvas({
 
       sceneRef.current = null;
     };
-  }, [recipientName, senderName, year, headline, subtext, webGLAvailable]);
+  }, [recipientName, senderName, year, headline, subtext, letterContent?.badge, letterContent?.greeting, letterContent?.subtitle, letterContent?.scrollPrompt, webGLAvailable]);
 
   useEffect(() => {
     const state = sceneRef.current;
@@ -762,6 +956,39 @@ export default function PreloaderCanvas({
 
         lifecycle.openComplete = true;
         state.openComplete = true;
+        try {
+          const cam = state.camera || sceneRef.current?.camera;
+          const domElement = state.renderer?.domElement;
+          if (cam && domElement) {
+            const box = new THREE.Box3().setFromObject(state.envelope.letterMesh);
+            const corners = [
+              new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+              new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+              new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+              new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+              new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+              new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+              new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+              new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+            ];
+            const vw = domElement.clientWidth || window.innerWidth;
+            const vh = domElement.clientHeight || window.innerHeight;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            corners.forEach((v) => {
+              v.project(cam);
+              minX = Math.min(minX, (v.x * 0.5 + 0.5) * vw);
+              maxX = Math.max(maxX, (v.x * 0.5 + 0.5) * vw);
+              minY = Math.min(minY, (-v.y * 0.5 + 0.5) * vh);
+              maxY = Math.max(maxY, (-v.y * 0.5 + 0.5) * vh);
+            });
+            const rect = { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
+            if (Number.isFinite(rect.left) && rect.width > 1 && rect.height > 1) {
+              callbacksRef.current.onLetterRect?.(rect);
+            }
+          }
+        } catch {
+          // Rect is an enhancement; never block the open completion.
+        }
         callbacksRef.current.onOpenComplete();
       },
     });

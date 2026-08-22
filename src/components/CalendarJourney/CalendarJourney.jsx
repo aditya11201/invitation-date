@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles, Check, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check, Heart } from 'lucide-react';
 import { sound } from '../../utils/sound';
 import { formatLocalDateString, parseLocalDate, isValidLocalDate } from '../../utils/date';
 
@@ -110,23 +110,13 @@ export default function CalendarJourney({
   return (
     <section
       id="calendar-journey-section"
-      className="relative min-h-[90vh] py-16 px-4 sm:px-6 flex flex-col items-center justify-center select-none"
+      className="relative py-10 border-b border-burgundy-200/60 space-y-8"
     >
-      {/* Background glow */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-96 h-96 rounded-full bg-gradient-to-tr from-pink-300/30 via-lavender-300/30 to-rose-200/30 blur-3xl" />
-      </div>
-
       {/* Section Header */}
-      <div className="text-center max-w-xl mx-auto mb-8 relative z-10">
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-pink-200 shadow-sm text-romantic-600 text-xs font-semibold uppercase tracking-wider mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>Step 2: The Date 📅</span>
-        </div>
-        <h2 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 mb-2" style={{ textWrap: 'balance' }}>
-          When are you free? 💗
-        </h2>
-        <p className="text-slate-600 text-sm sm:text-base font-medium">
+      <div className="text-center space-y-2 relative z-10">
+        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">STEP 02 • THE DATE</span>
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">When are you free? 💗</h2>
+        <p className="text-xs sm:text-sm text-ink/70">
           {isLocked ? 'Date confirmed!' : (config.calendar?.subtitle || `Choose any date in ${targetYear}`)}
         </p>
       </div>
@@ -135,11 +125,7 @@ export default function CalendarJourney({
       <div className="relative w-full max-w-md mx-auto z-10">
         {/* Calendar Card */}
         <div
-          className="rounded-3xl p-6 sm:p-8 bg-white/85 backdrop-blur-xl border border-white/90 shadow-2xl transition-all duration-500"
-          style={{
-            transform: 'perspective(1000px) rotateX(4deg)',
-            boxShadow: '0 20px 50px -10px rgba(236, 72, 153, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
-          }}
+          className="rounded-xl bg-white/70 backdrop-blur-sm border border-burgundy-200/70 shadow-inner p-5 sm:p-6 relative"
         >
           {/* Month Header & Controls */}
           <div className="flex items-center justify-between mb-6">
@@ -149,18 +135,18 @@ export default function CalendarJourney({
               aria-label="Previous month"
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all min-h-[44px] min-w-[44px] ${
                 isLocked || activeMonth === 0
-                  ? 'opacity-30 border-slate-200 text-slate-300 cursor-not-allowed'
-                  : 'bg-white hover:bg-romantic-50 border-pink-200 text-slate-700 shadow-sm active:scale-95 cursor-pointer'
+                  ? 'opacity-30 border-burgundy-100 text-burgundy-200 cursor-not-allowed'
+                  : 'bg-white hover:bg-burgundy-50 border-burgundy-200 text-burgundy-800 shadow-sm active:scale-95 cursor-pointer'
               }`}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
             <div className="text-center">
-              <h3 className="font-display font-bold text-2xl text-slate-800">
+              <h3 className="font-serif font-bold text-xl text-burgundy-900">
                 {MONTH_NAMES[activeMonth]}
               </h3>
-              <span className="text-xs font-semibold text-romantic-600 tracking-widest uppercase">
+              <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase">
                 {targetYear}
               </span>
             </div>
@@ -171,8 +157,8 @@ export default function CalendarJourney({
               aria-label="Next month"
               className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all min-h-[44px] min-w-[44px] ${
                 isLocked || activeMonth === 11
-                  ? 'opacity-30 border-slate-200 text-slate-300 cursor-not-allowed'
-                  : 'bg-white hover:bg-romantic-50 border-pink-200 text-slate-700 shadow-sm active:scale-95 cursor-pointer'
+                  ? 'opacity-30 border-burgundy-100 text-burgundy-200 cursor-not-allowed'
+                  : 'bg-white hover:bg-burgundy-50 border-burgundy-200 text-burgundy-800 shadow-sm active:scale-95 cursor-pointer'
               }`}
             >
               <ChevronRight className="w-5 h-5" />
@@ -182,7 +168,7 @@ export default function CalendarJourney({
           {/* Days of Week Header */}
           <div className="grid grid-cols-7 gap-1 text-center mb-3">
             {DAYS_OF_WEEK.map((d, i) => (
-              <span key={i} className="text-xs font-bold text-slate-400 py-1 uppercase">
+              <span key={i} className="text-[10px] font-mono font-bold text-burgundy-600 uppercase py-1">
                 {d}
               </span>
             ))}
@@ -202,7 +188,7 @@ export default function CalendarJourney({
                 return (
                   <div
                     key={item.dateString}
-                    className="w-full aspect-square flex items-center justify-center rounded-xl bg-white/20 text-slate-300 text-sm font-medium blur-[0.4px] opacity-40 cursor-not-allowed select-none"
+                    className="w-full aspect-square flex items-center justify-center rounded-xl text-ink/25 text-sm font-medium opacity-60 cursor-not-allowed select-none"
                     title="Past date (unavailable)"
                   >
                     {item.day}
@@ -216,12 +202,12 @@ export default function CalendarJourney({
                   key={item.dateString}
                   disabled={isLocked}
                   onClick={() => handleDateClick(item)}
-                  className={`w-full aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 min-h-[40px] ${
+                  className={`relative circled-option w-full aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 min-h-[40px] ${
                     isLocked ? 'cursor-not-allowed' : 'cursor-pointer'
                   } ${
                     isSelected
-                      ? 'bg-gradient-to-tr from-pink-500 to-rose-500 text-white font-bold shadow-glow-pink scale-110 -translate-y-1 z-10'
-                      : 'bg-white/70 hover:bg-pink-50 hover:text-pink-600 text-slate-700 border border-pink-100 shadow-sm active:scale-95'
+                      ? 'selected bg-burgundy-50 text-burgundy-900 font-bold scale-105 z-10'
+                      : 'bg-white/60 hover:bg-burgundy-50/80 text-ink border border-burgundy-200/70 active:scale-95'
                   }`}
                 >
                   <span>{item.day}</span>
@@ -235,30 +221,30 @@ export default function CalendarJourney({
         {/* Floating Selected Date Badge */}
         {formattedTempDate && (
           <div className="mt-6 flex flex-col items-center animate-heartPop">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 shadow-sm text-romantic-700 font-bold text-sm">
-              <CalendarIcon className="w-4 h-4 text-pink-500" />
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-burgundy-50 border border-burgundy-200 shadow-sm text-burgundy-800 font-bold text-sm">
+              <CalendarIcon className="w-4 h-4 text-burgundy-600" />
               <span>{formattedTempDate} 💗</span>
             </div>
 
             {/* Destination + Date Combined Summary */}
             {selectedPlace && (
-              <p className="text-xs font-semibold text-slate-500 mt-2">
-                Destination: <span className="text-slate-800">{selectedPlace}</span>
+              <p className="text-xs font-semibold text-ink/50 mt-2">
+                Destination: <span className="text-ink">{selectedPlace}</span>
               </p>
             )}
 
             {/* Required Date Confirmation CTA */}
             {isLocked ? (
-              <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-base shadow-sm">
-                <Check className="w-5 h-5 text-emerald-600" />
+              <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-bold text-base shadow-sm">
+                <Check className="w-5 h-5 text-burgundy-600" />
                 <span>Date Locked: {formattedTempDate} 💗</span>
               </div>
             ) : (
               <button
                 onClick={handleConfirm}
-                className="group mt-4 inline-flex items-center gap-2.5 px-9 py-4 rounded-full font-bold text-white text-base bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 shadow-glow-pink hover:shadow-glow-lavender hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer min-h-[44px]"
+                className="group mt-4 inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
               >
-                <Heart className="w-5 h-5 fill-white group-hover:scale-125 transition-transform" />
+                <Heart className="w-4 h-4 fill-rose-400 text-rose-400 group-hover:scale-125 transition-transform" />
                 <span>This date 💗</span>
               </button>
             )}

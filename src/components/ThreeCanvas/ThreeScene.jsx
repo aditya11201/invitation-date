@@ -106,7 +106,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
         }),
     );
 
-    const heartCount = window.innerWidth < 768 ? 16 : 24;
+    const heartCount = window.innerWidth < 768 ? 26 : 44;
     const hearts = [];
 
     for (let i = 0; i < heartCount; i++) {
@@ -122,7 +122,10 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
           ? THREE.MathUtils.randFloat(-15, -4)
           : THREE.MathUtils.randFloat(-3, 3);
 
-      const xRange = isForeground ? 12 : 20;
+      // Span the full viewport width at this depth (+ off-screen margin)
+      const aspect = width / height;
+      const halfVisibleX = Math.tan(THREE.MathUtils.degToRad(25)) * (16 - z) * aspect;
+      const xRange = Math.max(halfVisibleX * 2.5, 12);
       const yRange = 18;
 
       mesh.position.set(
@@ -152,6 +155,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
         wobbleAmp: THREE.MathUtils.randFloat(0.3, 0.8),
         phase: Math.random() * Math.PI * 2,
         isForeground,
+        xRange,
       };
 
       scene.add(mesh);
@@ -265,7 +269,8 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
         heart.position.y += u.speedY * 60 * delta;
         if (heart.position.y > 12) {
           heart.position.y = -12;
-          heart.position.x = THREE.MathUtils.randFloatSpread(u.isForeground ? 12 : 20);
+          // Re-seed the wobble anchor so recycled hearts spread across the full width
+          u.baseX = THREE.MathUtils.randFloatSpread(u.xRange);
         }
 
         // Wobble like underwater love bubble

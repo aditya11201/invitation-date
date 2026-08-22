@@ -83,32 +83,75 @@
   }
 }
 
+/* ============================================================
+   Long-paper redesign tokens — source: reference-new-style.html
+   Additive only. Rules above are frozen (envelope view).
+   ============================================================ */
+@layer components {
+  /* Single continuous vertical paper sheet */
+  .paper-vertical-sheet {
+    background-color: #FDFBF7;
+    background-image:
+      radial-gradient(#e5dccb 0.7px, transparent 0.7px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(248, 242, 230, 0.4) 100%);
+    background-size: 16px 16px, 100% 100%;
+    box-shadow:
+      0 0 0 1px rgba(212, 163, 115, 0.25),
+      0 20px 50px -10px rgba(0, 0, 0, 0.75),
+      0 10px 20px -5px rgba(77, 18, 29, 0.3);
+  }
+
+  .airmail-strip {
+    background: repeating-linear-gradient(
+      -45deg,
+      #B83A4B 0 12px,
+      #FDFBF7 12px 22px,
+      #4D121D 22px 34px,
+      #FDFBF7 34px 44px
+    );
+  }
+
+  .washi-tape {
+    background-color: rgba(248, 201, 210, 0.75);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* Hand-drawn selection ring. Lives in @layer components so Tailwind
+     utilities (absolute/relative) always win over its position:relative. */
+  .circled-option {
+    position: relative;
+  }
+  .circled-option.selected::after {
+    content: '';
+    position: absolute;
+    inset: -4px -8px;
+    border: 2.5px solid #B83A4B;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    pointer-events: none;
+    animation: circleDraw 0.3s ease-out forwards;
+  }
+}
+
+@keyframes circleDraw {
+  0% { opacity: 0; transform: scale(0.9) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(1deg); }
+}
+
 .destination-book-selector {
   --book-ink: #332c2f;
   --book-paper: #fdfaf2;
   --book-rose: #a34e5d;
   position: relative;
-  width: 100vw;
-  max-width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  min-height: 100svh;
-  height: 100svh;
   perspective: 1600px;
-  overflow: hidden;
   isolation: isolate;
-  padding-top: max(1rem, env(safe-area-inset-top));
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .carousel-stage,
 .destination-book-selector__stage {
   position: relative;
-  width: 100%;
-  max-width: 1200px;
-  height: clamp(380px, 52vh, 520px);
   perspective: 1600px;
   display: flex;
   align-items: center;
@@ -435,18 +478,7 @@
   transform: skewX(-6deg);
 }
 
-.destination-book-selector__scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
 @media (max-width: 639px) {
-  .carousel-stage,
-  .destination-book-selector__stage {
-    height: clamp(340px, 48vh, 400px);
-  }
   .date-card,
   .destination-book {
     width: 260px;
@@ -498,10 +530,6 @@
 }
 
 @media (max-height: 680px) and (min-width: 640px) {
-  .carousel-stage,
-  .destination-book-selector__stage {
-    height: 380px;
-  }
   .date-card,
   .destination-book {
     width: 270px;

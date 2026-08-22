@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Heart } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Heart, Paperclip } from 'lucide-react';
 import { sound } from '../../utils/sound';
 
 export default function InvitationLetter({
@@ -10,37 +10,30 @@ export default function InvitationLetter({
   setNoClickCount,
   onQuestionReady,
 }) {
-  const [envelopeOpen, setEnvelopeOpen] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const containerRef = useRef(null);
+  const questionRef = useRef(null);
   const yesButtonRef = useRef(null);
+  // YES escalation: 'inline' grows in-place; 'pinned' breaks out of the paper
+  // at the button's exact screen rect; 'full' smoothly covers the whole viewport.
+  const [yesPhase, setYesPhase] = useState('inline');
+  const [yesRect, setYesRect] = useState(null);
 
-  // Monitor scroll within the letter section to drive letter extraction & staged paragraphs
+  // Signal question readiness for scroll lock once the question block enters view
   useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
+    if (isAccepted || !questionRef.current || !onQuestionReady) return undefined;
 
-      // Calculate how far the section has progressed through viewport
-      const totalDist = rect.height + windowHeight;
-      const currentPos = windowHeight - rect.top;
-      const progress = Math.max(0, Math.min(1, currentPos / (totalDist * 0.75)));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isAccepted) {
+            onQuestionReady(true);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
 
-      setScrollProgress(progress);
-      if (progress > 0.15) {
-        setEnvelopeOpen(true);
-      }
-
-      // Signal question readiness for scroll lock once question and buttons are reached
-      if (progress >= 0.75 && !isAccepted && onQuestionReady) {
-        onQuestionReady(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    observer.observe(questionRef.current);
+    return () => observer.disconnect();
   }, [isAccepted, onQuestionReady]);
 
   const noProgression = config.noProgression || [
@@ -60,8 +53,25 @@ export default function InvitationLetter({
       navigator.vibrate(60);
     }
 
+    // On the 4th No, break the Yes button out of the paper: pin it at its
+    // exact on-screen rect (zero jump), then let it grow to cover the viewport.
+    if (noClickCount === 3 && yesButtonRef.current) {
+      const rect = yesButtonRef.current.getBoundingClientRect();
+      setYesRect({ left: rect.left, top: rect.top, width: rect.width, height: rect.height });
+      setYesPhase('pinned');
+    }
+
     setNoClickCount(prev => Math.min(5, prev + 1));
   };
+
+  // One frame after pinning, expand the pinned Yes button to the full viewport.
+  useEffect(() => {
+    if (yesPhase !== 'pinned') return undefined;
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setYesPhase('full'));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [yesPhase]);
 
   const handleYesClick = () => {
     sound.playPop(1.5);
@@ -79,199 +89,149 @@ export default function InvitationLetter({
     onAccept();
   };
 
-  // Compute Yes button dynamic scaling and styles according to PRD progression
-  const getYesScaleClass = () => {
-    switch (noClickCount) {
-      case 1:
-        return 'scale-[1.25] z-20 shadow-glow-pink';
-      case 2:
-        return 'scale-[1.60] z-20 shadow-glow-pink';
-      case 3:
-        return 'scale-[2.20] z-30 shadow-glow-pink';
-      case 4:
-        return 'scale-[2.80] sm:scale-[3.20] z-30 shadow-glow-pink px-10 py-5';
-      case 5:
-        return 'fixed inset-4 sm:inset-10 z-50 flex items-center justify-center text-2xl sm:text-4xl rounded-3xl animate-heartPop shadow-2xl';
-      default:
-        return 'scale-100';
+  // Yes button presentation per escalation phase.
+  const getYesPresentation = () => {
+    if (yesPhase !== 'inline') {
+      const full = yesPhase === 'full';
+      return {
+        className: `group flex items-center justify-center gap-3 bg-burgundy-900 text-amber-100 font-bold border border-gold-300 shadow-2xl cursor-pointer ${
+          full ? 'text-2xl sm:text-4xl' : 'text-sm sm:text-base'
+        }`,
+        style: {
+          position: 'fixed',
+          // Center-anchored: expands evenly around its own center while the
+          // center glides from the pinned rect to the viewport center.
+          left: full ? '50vw' : `${yesRect.left + yesRect.width / 2}px`,
+          top: full ? '50vh' : `${yesRect.top + yesRect.height / 2}px`,
+          transform: 'translate(-50%, -50%)',
+          transformOrigin: 'center center',
+          width: full ? '100vw' : yesRect.width,
+          height: full ? '100vh' : yesRect.height,
+          margin: 0,
+          borderRadius: full ? 0 : 9999,
+          zIndex: 70,
+          transition: 'all 700ms cubic-bezier(0.22, 1, 0.36, 1)',
+        },
+      };
     }
+    const scaleClasses = {
+      1: 'scale-[1.25] z-20 shadow-glow-pink',
+      2: 'scale-[1.60] z-20 shadow-glow-pink',
+      3: 'scale-[2.20] z-30 shadow-glow-pink',
+    };
+    return {
+      className: `group inline-flex items-center justify-center gap-2 px-6 py-3 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 min-h-[44px] cursor-pointer ${
+        scaleClasses[noClickCount] || 'scale-100'
+      }`,
+      style: undefined,
+    };
   };
+  const yesPresentation = getYesPresentation();
 
   const paragraphs = config.letter?.body || [];
 
   return (
     <section
-      ref={containerRef}
       id="invitation-letter-section"
-      className="relative min-h-[140vh] py-20 px-4 sm:px-6 flex flex-col items-center justify-start select-none"
+      className="relative py-10 border-b border-burgundy-200/60 space-y-6 select-none"
     >
-      {/* Section kicker — thin rules flanking letterspaced small caps */}
-      <div className="inline-flex items-center gap-3 sm:gap-4 mb-10 sm:mb-12">
-        <span aria-hidden="true" className="h-px w-8 sm:w-12 bg-romantic-300/70" />
-        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-        <span className="text-[10px] sm:text-xs font-sans font-semibold uppercase tracking-[0.26em] sm:tracking-[0.3em] text-romantic-600">
+      {/* Section eyebrow */}
+      <div className="text-center">
+        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">
           {config.letter?.tag || "A Note From My Heart 💌"}
         </span>
-        <span aria-hidden="true" className="h-px w-8 sm:w-12 bg-romantic-300/70" />
       </div>
 
-      {/* 3D Envelope & Letter Extraction Container */}
-      <div className="relative w-full max-w-xl mx-auto flex flex-col items-center">
+      {/* Letter card on the continuous paper sheet */}
+      <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-burgundy-200/70 shadow-inner p-6 sm:p-8 relative space-y-4">
+        {/* Paperclip decor */}
+        <Paperclip
+          aria-hidden="true"
+          className="absolute -top-3 left-6 w-6 h-6 transform -rotate-45 text-burgundy-800 opacity-80"
+        />
 
-        {/* Envelope 3D Visual */}
-        <div
-          className="relative w-full max-w-md aspect-[16/10] mx-auto rounded-xl bg-gradient-to-br from-romantic-200 via-ivory-200 to-lavender-200 p-2 shadow-paper border border-white/60 transition-all duration-700"
-          style={{
-            transform: `perspective(1000px) rotateX(${Math.max(0, 20 - scrollProgress * 20)}deg)`,
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          {/* Envelope Pocket */}
-          <div className="relative w-full h-full bg-gradient-to-tr from-ivory-50 to-romantic-100 rounded-md overflow-hidden shadow-inner flex items-center justify-center">
-            {/* Wax Seal */}
-            <div
-              className={`absolute z-30 transition-all duration-500 ${
-                envelopeOpen ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100'
-              }`}
+        {/* Salutation */}
+        <h2 className="font-handwritingPaper text-2xl sm:text-3xl text-burgundy-900 font-bold">
+          {config.letter?.greeting}
+        </h2>
+
+        {/* Letter body — always fully visible */}
+        <div className="space-y-4">
+          {paragraphs.map((para, idx) => (
+            <p
+              key={idx}
+              className="font-serif text-sm sm:text-base text-ink/90 leading-relaxed"
+              style={{ textWrap: 'pretty' }}
             >
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-romantic-500 to-romantic-700 shadow-lg ring-1 ring-romantic-300/60 -rotate-6 flex items-center justify-center text-ivory-50 font-display font-bold text-xl">
-                <Heart className="w-7 h-7 fill-white/90" />
-              </div>
-            </div>
-
-            {/* Envelope Triangles */}
-            <div className="absolute inset-0 border-t-[80px] sm:border-t-[110px] border-t-ivory-300/90 border-x-[150px] sm:border-x-[220px] border-x-transparent border-b-0 top-0 transition-transform duration-700 origin-top"
-              style={{
-                transform: envelopeOpen ? 'rotateX(180deg) translateY(-20px)' : 'rotateX(0deg)',
-              }}
-            />
-            <div className="absolute inset-0 border-b-[80px] sm:border-b-[110px] border-b-romantic-200/90 border-x-[150px] sm:border-x-[220px] border-x-transparent border-t-0 bottom-0 pointer-events-none" />
-          </div>
+              {para}
+            </p>
+          ))}
         </div>
 
-        {/* The Physical Letter — backing sheet + paper, extracted upwards & centered */}
-        <div
-          className={`relative w-full max-w-lg mt-[-100px] sm:mt-[-130px] z-20 transition-all duration-700 ${
-            envelopeOpen ? 'opacity-100 translate-y-0' : 'opacity-90 translate-y-8'
-          }`}
-        >
-          {/* Backing sheet for layered paper depth */}
-          <div aria-hidden="true" className="absolute inset-0 translate-x-2 translate-y-2.5 rounded-lg bg-ivory-200/90 border border-ivory-300/70 shadow-paper" />
+        {/* Ornament divider — rule-heart-rule */}
+        <div aria-hidden="true" className="flex items-center gap-3">
+          <span className="flex-1 h-px bg-burgundy-200" />
+          <Heart className="w-3 h-3 text-burgundy-400 fill-burgundy-400" />
+          <span className="flex-1 h-px bg-burgundy-200" />
+        </div>
 
-          <div
-            id="letter-paper"
-            className="relative rounded-lg bg-ivory-100 border border-ivory-300 p-6 sm:p-10 shadow-2xl"
-            style={{
-              backgroundImage: `radial-gradient(rgba(214,154,153,0.28) 0.5px, transparent 0.5px), radial-gradient(rgba(201,183,210,0.26) 0.5px, #fcfbf7 0.5px)`,
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 10px 10px',
-            }}
-          >
-            {/* Airmail trim along the letterhead edge */}
-            <div
-              aria-hidden="true"
-              className="absolute top-0 inset-x-0 h-1.5 rounded-t-lg opacity-60"
-              style={{
-                backgroundImage:
-                  'repeating-linear-gradient(90deg, rgba(163,78,93,0.85) 0 9px, transparent 9px 16px, rgba(135,109,145,0.8) 16px 25px, transparent 25px 32px)',
-              }}
-            />
+        {/* The Big Question Area */}
+        <div ref={questionRef} className="text-center">
+          <h3 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">
+            {config.letter?.question || "Would you go on a date with me? 🥺💗"}
+          </h3>
+          <p className="font-serif italic text-sm sm:text-base text-ink/70">
+            {config.letter?.subtext || "Choose what feels right for you 💌"}
+          </p>
 
-            {/* Paper Stamp */}
-            <div className="absolute top-4 right-4 w-12 h-14 border-2 border-dashed border-romantic-300 bg-romantic-50/60 p-1 flex flex-col items-center justify-center rotate-3">
-              <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-              <span className="text-[9px] font-bold text-romantic-500 uppercase tracking-tighter mt-1">LOVE</span>
-            </div>
+          {/* YES / NO Action Buttons */}
+          {!isAccepted ? (
+            <div className="relative min-h-[90px] mt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+              {/* Subtle heart reaction — re-keyed per No click so the pop replays */}
+              {noClickCount > 0 && (
+                <span
+                  key={noClickCount}
+                  aria-hidden="true"
+                  className="absolute -top-1 right-4 sm:right-10 z-10 pointer-events-none animate-heartPop"
+                >
+                  <Heart className="w-4 h-4 text-rose-400 fill-rose-400 opacity-70" />
+                </span>
+              )}
 
-            {/* Letter Salutation */}
-            <h2 className="font-handwriting text-3xl sm:text-4xl text-romantic-700 font-bold pr-12 mb-4">
-              {config.letter?.greeting}
-            </h2>
-            <div aria-hidden="true" className="flex items-center gap-2 mb-6">
-              <span className="h-px w-12 bg-romantic-300/80" />
-              <span className="w-1 h-1 rotate-45 bg-rose-400/80" />
-            </div>
+              {/* YES Button */}
+              <button
+                ref={yesButtonRef}
+                type="button"
+                onClick={handleYesClick}
+                className={yesPresentation.className}
+                style={yesPresentation.style}
+              >
+                <Heart
+                  className={`fill-rose-400 text-rose-400 transition-all duration-700 ${
+                    yesPhase === 'full' ? 'w-10 h-10 sm:w-14 sm:h-14' : 'w-4 h-4'
+                  }`}
+                />
+                <span>YES 💗</span>
+              </button>
 
-            {/* Staged Reading Paragraphs */}
-            <div className="space-y-4 font-sans text-romantic-900/75 text-sm sm:text-base leading-loose">
-              {paragraphs.map((para, idx) => {
-                // Stagger reveal based on scroll or show all if unlocked
-                const isRevealed = scrollProgress > (0.15 + idx * 0.1) || isAccepted;
-                return (
-                  <p
-                    key={idx}
-                    className={`transition-all duration-700 ${
-                      isRevealed ? 'opacity-100 translate-y-0' : 'opacity-20 blur-[1px] translate-y-2'
-                    }`}
-                    style={{ textWrap: 'pretty' }}
-                  >
-                    {para}
-                  </p>
-                );
-              })}
-            </div>
-
-            {/* Editorial rule with heart ornament */}
-            <div aria-hidden="true" className="my-8 flex items-center gap-3">
-              <span className="flex-1 h-px bg-romantic-200/80" />
-              <Heart className="w-3 h-3 text-rose-400 fill-rose-400" />
-              <span className="flex-1 h-px bg-romantic-200/80" />
-            </div>
-
-            {/* The Big Question Area */}
-            <div className="text-center">
-              <h3 className="font-display font-bold text-2xl sm:text-3xl text-romantic-900 mb-2 tracking-tight">
-                {config.letter?.question || "Would you go on a date with me? 🥺💗"}
-              </h3>
-              <p className="font-display italic text-sm sm:text-base text-romantic-600/90 mb-8">
-                {config.letter?.subtext || "Choose what feels right for you 💌"}
-              </p>
-
-              {/* YES / NO Action Buttons */}
-              {!isAccepted ? (
-                <div className="relative min-h-[90px] flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-                  {/* Subtle heart reaction — re-keyed per No click so the pop replays */}
-                  {noClickCount > 0 && (
-                    <span
-                      key={noClickCount}
-                      aria-hidden="true"
-                      className="absolute -top-1 right-4 sm:right-10 z-10 pointer-events-none animate-heartPop"
-                    >
-                      <Heart className="w-4 h-4 text-rose-400 fill-rose-400 opacity-70" />
-                    </span>
-                  )}
-
-                  {/* YES Button */}
-                  <button
-                    ref={yesButtonRef}
-                    type="button"
-                    onClick={handleYesClick}
-                    className={`group inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-md font-bold text-ivory-50 bg-romantic-600 ring-1 ring-inset ring-romantic-700/40 shadow-md hover:bg-romantic-700 hover:shadow-glow-pink hover:scale-105 active:scale-[0.96] transition-all duration-300 cursor-pointer min-h-[44px] ${getYesScaleClass()}`}
-                  >
-                    <Heart className="w-5 h-5 fill-white animate-pulse" />
-                    <span className="tracking-[0.18em]">YES 💗</span>
-                  </button>
-
-                  {/* NO Button (5-click playful gimmick) */}
-                  {noClickCount < 5 && (
-                    <button
-                      type="button"
-                      onClick={handleNoClick}
-                      className="inline-flex items-center justify-center px-6 py-3 rounded-md font-semibold text-romantic-700 bg-ivory-50/80 hover:bg-ivory-200 hover:text-romantic-900 border border-romantic-200 shadow-sm active:scale-[0.96] transition-all duration-200 cursor-pointer min-h-[44px]"
-                    >
-                      <span>{noProgression[noClickCount]}</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                /* Accepted Banner */
-                <div className="inline-flex items-center gap-2.5 px-6 py-3 rounded-md bg-romantic-600 border border-romantic-700/40 text-ivory-50 font-bold text-base shadow-glow-pink animate-heartPop">
-                  <Heart className="w-5 h-5 fill-white text-white" />
-                  <span>SHE SAID YES! 🎉💗</span>
-                </div>
+              {/* NO Button (5-click playful gimmick) */}
+              {noClickCount < 5 && (
+                <button
+                  type="button"
+                  onClick={handleNoClick}
+                  className="inline-flex items-center justify-center px-6 py-3 bg-white hover:bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-semibold text-sm rounded-full shadow-sm active:scale-95 transition duration-200 min-h-[44px] cursor-pointer"
+                >
+                  <span>{noProgression[noClickCount]}</span>
+                </button>
               )}
             </div>
-          </div>
+          ) : (
+            /* Accepted Banner */
+            <div className="inline-flex items-center gap-2 px-6 py-3 mt-6 bg-burgundy-900 border border-gold-300 text-amber-100 rounded-full font-bold text-sm shadow-lg animate-heartPop">
+              <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
+              <span>SHE SAID YES! 🎉💗</span>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -5,7 +5,7 @@ import { clampProgress, formatPreloaderCopy, getPreloaderPhase } from './preload
 import PreloaderCanvas from './PreloaderCanvas';
 import './preloader.css';
 
-export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, recipientName, senderName, year }) {
+export default function Preloader({ onAudioUnlock, preloaderConfig, recipientName, senderName, year, heroContent, onLetterRect, onHandoffStart, onFadeDone }) {
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSealReady, setIsSealReady] = useState(false);
@@ -16,6 +16,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
   const startTimeoutRef = useRef(null);
   const openedRef = useRef(false);
   const startedRef = useRef(false);
+  const letterRectRef = useRef(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -74,6 +75,14 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
   const phase = getPreloaderPhase(progress, preloaderConfig.phases);
   const loadingMessage = formatPreloaderCopy(phase.message, values);
   const format = (template) => formatPreloaderCopy(template, values);
+  // Letter face copy mirrors the Hero cover so the 3D letter and the long
+  // paper sheet read as one continuous object.
+  const letterContent = {
+    badge: heroContent?.badge,
+    greeting: heroContent?.greeting || `For ${displayName} 💗`,
+    subtitle: heroContent?.subtitle,
+    scrollPrompt: heroContent?.scrollPrompt || 'scroll',
+  };
 
   const handleOpen = () => {
     if (!isSealReady || isOpening || openedRef.current) return;
@@ -87,34 +96,31 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
   const handleOpenComplete = () => {
     if (isFading || startedRef.current) return;
     setIsFading(true);
+    if (onHandoffStart && letterRectRef.current) {
+      onHandoffStart(letterRectRef.current);
+    }
     startTimeoutRef.current = window.setTimeout(() => {
       if (startedRef.current) return;
       startedRef.current = true;
-      onStart();
-    }, reducedMotion ? 80 : 640);
+      onFadeDone();
+    }, reducedMotion ? 80 : 650);
   };
 
   return (
     <section className={`preloader${isFading ? ' is-fading' : ''}`} aria-busy={!isSealReady}>
       <h1 className="sr-only">{format(preloaderConfig.title || 'A Special Invitation')}</h1>
 
-      {/* Top Header Badge */}
-      <div className="preloader__badge-container" aria-hidden="true">
-        <div className="glass-panel preloader__badge">
-          <span className="preloader__badge-dot" />
-          <span>{format(preloaderConfig.badge)}</span>
-        </div>
-      </div>
-
       {/* 3D Fullscreen Envelope Canvas Stage */}
       <div className="preloader__scene-stage">
         <PreloaderCanvas
           coverContent={coverContent}
+          letterContent={letterContent}
           isOpening={isOpening}
           isReady={isLoaded}
           isSealReady={isSealReady}
           openLabel={format(preloaderConfig.openLabel)}
           onOpenComplete={handleOpenComplete}
+          onLetterRect={(rect) => { letterRectRef.current = rect; }}
           onSealActivate={handleOpen}
           onSealReady={() => setIsSealReady(true)}
           onWebGLChange={setIsWebGLAvailable}
