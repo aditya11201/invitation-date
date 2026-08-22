@@ -53,3 +53,17 @@ export function getLoadingMessage(progress, recipientName = 'Sassy') {
 
   return PRELOADER_COPY.loading.crafting;
 }
+
+export function resolveFallbackSealLabel(openLabel, recipientName) {
+  if (typeof openLabel === 'string' && openLabel.trim().length > 0) {
+    return openLabel;
+  }
+  if (typeof recipientName === 'string' && recipientName.trim().length > 0) {
+    return `Open ${recipientName}'s invitation`;
+  }
+  return 'Open invitation';
+}
+
+export function isFallbackSealDisabled({ isSealReady = false, isOpening = false } = {}) {
+  return !isSealReady || Boolean(isOpening);
+}

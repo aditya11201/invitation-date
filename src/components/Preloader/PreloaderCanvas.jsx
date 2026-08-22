@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { resolveFallbackSealLabel, isFallbackSealDisabled } from './preloaderStages.js';
 import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
@@ -148,11 +149,14 @@ function applyOpenFinalState(envelope) {
 export default function PreloaderCanvas({
   isReady,
   isOpening,
+  isSealReady: isSealReadyProp,
   reducedMotion,
   coverContent,
+  openLabel,
   onSealReady,
   onSealActivate,
   onOpenComplete,
+  onWebGLChange,
 }) {
   const {
     recipientName,
@@ -163,7 +167,7 @@ export default function PreloaderCanvas({
   } = coverContent;
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
-  const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete });
+  const callbacksRef = useRef({ onSealReady, onSealActivate, onOpenComplete, onWebGLChange });
   const reducedMotionRef = useRef(reducedMotion);
   const lifecycleRef = useRef({
     flipStarted: false,
@@ -177,7 +181,7 @@ export default function PreloaderCanvas({
   const fallbackOpenRef = useRef(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
 
-  callbacksRef.current = { onSealReady, onSealActivate, onOpenComplete };
+  callbacksRef.current = { onSealReady, onSealActivate, onOpenComplete, onWebGLChange };
   reducedMotionRef.current = reducedMotion;
 
   useEffect(() => {
@@ -221,6 +225,7 @@ export default function PreloaderCanvas({
 
       console.warn('Preloader WebGL unavailable; using static envelope fallback.', error);
       setWebGLAvailable(false);
+      callbacksRef.current.onWebGLChange?.(false);
       return undefined;
     }
 
@@ -801,8 +806,12 @@ export default function PreloaderCanvas({
     return () => timeline.kill();
   }, [isOpening, reducedMotion, webGLAvailable, sceneGeneration]);
 
+  const sealReady = isSealReadyProp !== undefined ? isSealReadyProp : (fallbackReadyRef.current || isReady);
+  const sealDisabled = isFallbackSealDisabled({ isSealReady: sealReady, isOpening });
+  const resolvedOpenLabel = resolveFallbackSealLabel(openLabel, recipientName);
+
   return (
-    <div ref={containerRef} className="preloader-canvas" aria-hidden="true">
+    <div ref={containerRef} className="preloader-canvas" aria-hidden={webGLAvailable ? 'true' : undefined}>
       {!webGLAvailable && (
         <div className="preloader-canvas__fallback">
           <div className="preloader-canvas__fallback-envelope">
@@ -811,13 +820,16 @@ export default function PreloaderCanvas({
               <span>{headline}</span>
               <span>{year}</span>
             </div>
-            <div className="preloader-canvas__fallback-flap" />
-            <div
+            <div className="preloader-canvas__fallback-flap" aria-hidden="true" />
+            <button
+              type="button"
               className="preloader-canvas__fallback-seal"
               onClick={() => callbacksRef.current.onSealActivate?.()}
+              disabled={sealDisabled}
+              aria-label={resolvedOpenLabel}
             >
-              ♥
-            </div>
+              <span aria-hidden="true">♥</span>
+            </button>
           </div>
         </div>
       )}

@@ -12,6 +12,7 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
   const [isOpening, setIsOpening] = useState(false);
   const [isFading, setIsFading] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isWebGLAvailable, setIsWebGLAvailable] = useState(true);
   const startTimeoutRef = useRef(null);
   const openedRef = useRef(false);
   const startedRef = useRef(false);
@@ -111,9 +112,12 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
           coverContent={coverContent}
           isOpening={isOpening}
           isReady={isLoaded}
+          isSealReady={isSealReady}
+          openLabel={format(preloaderConfig.openLabel)}
           onOpenComplete={handleOpenComplete}
           onSealActivate={handleOpen}
           onSealReady={() => setIsSealReady(true)}
+          onWebGLChange={setIsWebGLAvailable}
           reducedMotion={reducedMotion}
         />
       </div>
@@ -148,17 +152,19 @@ export default function Preloader({ onAudioUnlock, onStart, preloaderConfig, rec
         </div>
       </div>
 
-      {/* Accessible CTA Button for Keyboard and Screen Reader Navigation */}
-      <button
-        type="button"
-        className="preloader__cta sr-only"
-        onClick={handleOpen}
-        disabled={!isSealReady || isOpening}
-        aria-label={format(preloaderConfig.openLabel)}
-      >
-        <span>{format(preloaderConfig.openLabel)}</span>
-        <Heart className="preloader__cta-icon" aria-hidden="true" />
-      </button>
+      {/* Accessible CTA Button for Keyboard and Screen Reader Navigation (WebGL 3D mode) */}
+      {isWebGLAvailable && (
+        <button
+          type="button"
+          className="preloader__cta sr-only"
+          onClick={handleOpen}
+          disabled={!isSealReady || isOpening}
+          aria-label={format(preloaderConfig.openLabel)}
+        >
+          <span>{format(preloaderConfig.openLabel)}</span>
+          <Heart className="preloader__cta-icon" aria-hidden="true" />
+        </button>
+      )}
     </section>
   );
 }

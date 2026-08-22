@@ -5,6 +5,8 @@ import {
   formatPreloaderCopy,
   getPreloaderPhase,
   getLoadingMessage,
+  resolveFallbackSealLabel,
+  isFallbackSealDisabled,
 } from './preloaderStages.js';
 
 const phases = [
@@ -68,4 +70,20 @@ test('uses the ready message at 100 percent and clamps invalid ranges', () => {
   assert.equal(getLoadingMessage(100, 'Sassy'), 'Your invitation is ready 💌');
   assert.equal(getLoadingMessage(140, 'Sassy'), 'Your invitation is ready 💌');
   assert.equal(getLoadingMessage(-20, 'Sassy'), 'Crafting your envelope...');
+});
+
+test('resolveFallbackSealLabel returns formatted openLabel, personalized fallback, or generic default', () => {
+  assert.equal(resolveFallbackSealLabel("Open Sassy's invitation", 'Sassy'), "Open Sassy's invitation");
+  assert.equal(resolveFallbackSealLabel('', 'Sassy'), "Open Sassy's invitation");
+  assert.equal(resolveFallbackSealLabel(undefined, 'Cutie'), "Open Cutie's invitation");
+  assert.equal(resolveFallbackSealLabel(undefined, ''), 'Open invitation');
+  assert.equal(resolveFallbackSealLabel(null, null), 'Open invitation');
+});
+
+test('isFallbackSealDisabled disables seal when not ready or during opening', () => {
+  assert.equal(isFallbackSealDisabled({ isSealReady: false, isOpening: false }), true);
+  assert.equal(isFallbackSealDisabled({ isSealReady: true, isOpening: false }), false);
+  assert.equal(isFallbackSealDisabled({ isSealReady: true, isOpening: true }), true);
+  assert.equal(isFallbackSealDisabled({ isSealReady: false, isOpening: true }), true);
+  assert.equal(isFallbackSealDisabled(), true);
 });
