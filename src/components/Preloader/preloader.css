@@ -398,7 +398,6 @@
   transform: translate(-50%, -50%);
   box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
 }
-
 @media (max-height: 600px) {
   .preloader__badge-container {
     top: max(0.5rem, env(safe-area-inset-top));
