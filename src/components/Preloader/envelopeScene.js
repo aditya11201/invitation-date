@@ -204,20 +204,22 @@ function createHeartReliefGeometry() {
 }
 
 /**
- * Builds the scene with an optional caller-owned cover texture. The cleanup
- * function disposes scene-owned resources but never disposes coverTexture.
+ * Builds the scene with optional caller-owned cover/letter textures. The
+ * cleanup function disposes scene-owned resources but never disposes the
+ * caller-owned textures.
  */
-export function createEnvelopeScene({ coverTexture = null } = {}) {
+export function createEnvelopeScene({ coverTexture = null, letterTexture = null } = {}) {
   const group = new THREE.Group();
   group.name = 'preloader-envelope';
 
   const bodyMaterial = new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.45, metalness: 0.1 });
   const deepBodyMaterial = new THREE.MeshStandardMaterial({ color: palette.bodyDeep, roughness: 0.5, metalness: 0.1 });
   const liningMaterial = new THREE.MeshStandardMaterial({ color: palette.lining, roughness: 0.65 });
-  const paperMaterial = new THREE.MeshStandardMaterial({ color: palette.paper, roughness: 0.6 });
   const frontMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, map: coverTexture, roughness: 0.45, metalness: 0.05 });
   const waxMaterial = new THREE.MeshStandardMaterial({ color: palette.seal, roughness: 0.35, metalness: 0.25 });
   const reliefMaterial = new THREE.MeshStandardMaterial({ color: palette.relief, roughness: 0.28, metalness: 0.4 });
+  // Letter face carries a canvas texture with rounded transparent corners.
+  const letterFaceMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, map: letterTexture, roughness: 0.6, transparent: true });
 
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.3), liningMaterial);
   inner.name = 'preloader-envelope-inner';
@@ -233,7 +235,7 @@ export function createEnvelopeScene({ coverTexture = null } = {}) {
   front.position.z = 0.045;
   group.add(front);
 
-  const letter = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.5, 0.02), paperMaterial);
+  const letter = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.5, 0.02), letterFaceMaterial);
   letter.name = 'preloader-envelope-letter';
   letter.position.set(0, -0.1, -0.015);
   letter.scale.setScalar(0.48);

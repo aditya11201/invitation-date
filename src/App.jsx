@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { invitationConfig } from './config/config';
 import ThreeScene from './components/ThreeCanvas/ThreeScene';
 import Preloader from './components/Preloader/Preloader';
-import Navbar from './components/Navbar/Navbar';
 import Hero from './components/Hero/Hero';
 import InvitationLetter from './components/InvitationLetter/InvitationLetter';
 import CelebrationScene from './components/CelebrationScene/CelebrationScene';
@@ -28,7 +27,11 @@ export default function App() {
 
   const [viewTicket, setViewTicket] = useState(false);
 
-  const [musicEnabled, setMusicEnabled] = useState(false);
+  // Envelope → paper handoff: rect of the 3D letter at open-complete, and
+  // whether the fading preloader is still mounted over the live content.
+  const [handoffRect, setHandoffRect] = useState(null);
+  const [preloaderMounted, setPreloaderMounted] = useState(true);
+
   const [scrollProgress, setScrollProgress] = useState(0);
 
   // PRD Scroll Lock: lock scrolling only once the question is fully revealed, unlock on YES, clean up on unmount/reset
@@ -58,20 +61,17 @@ export default function App() {
 
   // Enter from preloader
   const handleAudioUnlock = () => {
-    setMusicEnabled(true);
     sound.setMuted(false, invitationConfig.audio?.backgroundMusic, invitationConfig.audio?.enableSynthesizerFallback);
   };
 
-  const handleStart = () => {
+  // Preloader hands off: mount content under the fading preloader and FLIP
+  // the paper sheet from the letter's on-screen rect to full size.
+  const handleHandoffStart = (rect) => {
+    setHandoffRect(rect && Number.isFinite(rect.left) ? rect : null);
     setHasEntered(true);
   };
 
-  // Toggle music on/off
-  const handleToggleMusic = () => {
-    const nextState = !musicEnabled;
-    setMusicEnabled(nextState);
-    sound.setMuted(!nextState, invitationConfig.audio?.backgroundMusic, invitationConfig.audio?.enableSynthesizerFallback);
-  };
+  const handleFadeDone = () => setPreloaderMounted(false);
 
   // Scroll smoothly to letter section
   const handleScrollToLetter = () => {
@@ -149,7 +149,6 @@ export default function App() {
       setSelectedDate(null);
       setDateConfirmed(false);
       setViewTicket(false);
-      setMusicEnabled(false);
       sound.setMuted(true);
     }, 400);
   };
@@ -161,37 +160,39 @@ export default function App() {
         <ThreeScene isCelebration={acceptedInvitation} sceneProgress={scrollProgress} />
       )}
 
-      {/* Scene 0: 3D Preloader */}
-      {!hasEntered && (
+      {/* Scene 0: 3D Preloader (stays mounted while fading over the content) */}
+      {(!hasEntered || preloaderMounted) && (
         <Preloader
           onAudioUnlock={handleAudioUnlock}
-          onStart={handleStart}
           preloaderConfig={invitationConfig.preloader}
           recipientName={invitationConfig.recipientName}
           senderName={invitationConfig.senderName}
           year={invitationConfig.calendar.year}
+          heroContent={{
+            badge: invitationConfig.hero?.badge,
+            greeting: invitationConfig.hero?.greeting,
+            subtitle: invitationConfig.hero?.subtitle,
+            scrollPrompt: invitationConfig.hero?.scrollPrompt,
+          }}
+          onLetterRect={() => {}}
+          onHandoffStart={handleHandoffStart}
+          onFadeDone={handleFadeDone}
         />
       )}
 
       {/* Experience Content (Mounted once user enters) */}
       {hasEntered && (
         <>
-          {/* Glassmorphic Global Navigation */}
-          <Navbar
-            recipientName={invitationConfig.recipientName}
-            musicEnabled={musicEnabled}
-            onToggleMusic={handleToggleMusic}
-            scrollProgress={scrollProgress}
-          />
-
-          <main className="relative z-10 max-w-5xl mx-auto pb-24">
-            {/* Scene 1: Hero Greeting */}
+          {/* Scenes 1–10 on one continuous long paper.
+              Sits outside <main> so the dark desk runs full-bleed like the reference. */}
+          <LongPaper handoffRect={handoffRect}>
+            {/* Scene 1: Hero Greeting (paper cover) */}
             <Hero
               config={invitationConfig}
               onScrollDown={handleScrollToLetter}
             />
 
-            {/* Scene 2, 3, 4: Envelope, Staged Letter & YES/NO Interaction */}
+            {/* Scene 2, 3, 4: Letter & YES/NO Interaction */}
             <InvitationLetter
               config={invitationConfig}
               onAccept={handleAcceptInvitation}
@@ -200,57 +201,51 @@ export default function App() {
               setNoClickCount={setNoClickCount}
               onQuestionReady={(ready) => setIsQuestionLocked(ready)}
             />
-          </main>
 
-          {/* Scenes 5–10: Post-envelope journey on one continuous long paper.
-              Sits outside <main> so the dark desk runs full-bleed like the reference. */}
-          {acceptedInvitation && (
-            <LongPaper>
-              {/* Scene 5 & 6: YES celebration intro */}
-              <CelebrationScene onContinue={handleContinueToDestination} />
+            {/* Scene 5 & 6: YES celebration intro */}
+            <CelebrationScene onContinue={handleContinueToDestination} />
 
-              {/* Scene 7: Destination carousel */}
-              <LocationPicker
-                places={invitationConfig.places}
+            {/* Scene 7: Destination carousel */}
+            <LocationPicker
+              places={invitationConfig.places}
+              selectedPlace={selectedPlace}
+              onSelectPlace={setSelectedPlace}
+              onConfirmPlace={handleConfirmPlace}
+              isConfirmed={placeConfirmed}
+            />
+
+            {/* Scene 8: Calendar journey */}
+            {placeConfirmed && (
+              <CalendarJourney
+                config={invitationConfig}
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+                onConfirmDate={handleConfirmDate}
                 selectedPlace={selectedPlace}
-                onSelectPlace={setSelectedPlace}
-                onConfirmPlace={handleConfirmPlace}
-                isConfirmed={placeConfirmed}
+                isLocked={dateConfirmed}
               />
+            )}
 
-              {/* Scene 8: Calendar journey */}
-              {placeConfirmed && (
-                <CalendarJourney
-                  config={invitationConfig}
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                  onConfirmDate={handleConfirmDate}
-                  selectedPlace={selectedPlace}
-                  isLocked={dateConfirmed}
-                />
-              )}
+            {/* Scene 9: GIF surprise reveal */}
+            {dateConfirmed && (
+              <GifReveal
+                config={invitationConfig}
+                selectedPlace={selectedPlace}
+                selectedDate={selectedDate}
+                onProceedToTicket={handleProceedToTicket}
+              />
+            )}
 
-              {/* Scene 9: GIF surprise reveal */}
-              {dateConfirmed && (
-                <GifReveal
-                  config={invitationConfig}
-                  selectedPlace={selectedPlace}
-                  selectedDate={selectedDate}
-                  onProceedToTicket={handleProceedToTicket}
-                />
-              )}
-
-              {/* Scene 10: Final date ticket */}
-              {viewTicket && (
-                <DateTicket
-                  config={invitationConfig}
-                  selectedPlace={selectedPlace}
-                  selectedDate={selectedDate}
-                  onReset={handleReset}
-                />
-              )}
-            </LongPaper>
-          )}
+            {/* Scene 10: Final date ticket */}
+            {viewTicket && (
+              <DateTicket
+                config={invitationConfig}
+                selectedPlace={selectedPlace}
+                selectedDate={selectedDate}
+                onReset={handleReset}
+              />
+            )}
+          </LongPaper>
         </>
       )}
     </div>

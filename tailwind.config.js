@@ -36,9 +36,7 @@ export default {
           300: '#ede8d5',
           400: '#ded5b8',
         },
-        desk: '#140D0B',
         paper: '#FDFBF7',
-        'paper-dark': '#F4EFE6',
         ink: '#2A1B18',
         burgundy: {
           50: '#FDF2F4',
