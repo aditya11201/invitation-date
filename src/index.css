@@ -82,3 +82,69 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   Long-paper redesign tokens — source: reference-new-style.html
+   Additive only. Rules above are frozen (envelope view).
+   ============================================================ */
+@layer components {
+  /* Dark desk surface behind the long paper sheet */
+  .desk-backdrop {
+    background-color: #120b09;
+    background-image:
+      radial-gradient(circle at 50% 30%, #301815 0%, #120b09 85%),
+      radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 28px 28px;
+  }
+
+  /* Single continuous vertical paper sheet */
+  .paper-vertical-sheet {
+    background-color: #FDFBF7;
+    background-image:
+      radial-gradient(#e5dccb 0.7px, transparent 0.7px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(248, 242, 230, 0.4) 100%);
+    background-size: 16px 16px, 100% 100%;
+    box-shadow:
+      0 0 0 1px rgba(212, 163, 115, 0.25),
+      0 20px 50px -10px rgba(0, 0, 0, 0.75),
+      0 10px 20px -5px rgba(77, 18, 29, 0.3);
+  }
+
+  .airmail-strip {
+    background: repeating-linear-gradient(
+      -45deg,
+      #B83A4B 0 12px,
+      #FDFBF7 12px 22px,
+      #4D121D 22px 34px,
+      #FDFBF7 34px 44px
+    );
+  }
+
+  .washi-tape {
+    background-color: rgba(248, 201, 210, 0.75);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* Hand-drawn selection ring. Lives in @layer components so Tailwind
+     utilities (absolute/relative) always win over its position:relative. */
+  .circled-option {
+    position: relative;
+  }
+  .circled-option.selected::after {
+    content: '';
+    position: absolute;
+    inset: -4px -8px;
+    border: 2.5px solid #B83A4B;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    pointer-events: none;
+    animation: circleDraw 0.3s ease-out forwards;
+  }
+}
+
+@keyframes circleDraw {
+  0% { opacity: 0; transform: scale(0.9) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(1deg); }
+}

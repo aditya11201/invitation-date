@@ -35,12 +35,31 @@ export default {
           200: '#f7f4ea',
           300: '#ede8d5',
           400: '#ded5b8',
-        }
+        },
+        desk: '#140D0B',
+        paper: '#FDFBF7',
+        'paper-dark': '#F4EFE6',
+        ink: '#2A1B18',
+        burgundy: {
+          50: '#FDF2F4',
+          100: '#FCE4E8',
+          200: '#F8C9D2',
+          400: '#E27385',
+          600: '#B83A4B',
+          800: '#7A2030',
+          900: '#4D121D',
+        },
+        gold: {
+          300: '#F3E5AB',
+          500: '#D4A373',
+          600: '#B8824A',
+        },
       },
       fontFamily: {
         handwriting: ['"Dancing Script"', '"Caveat"', 'cursive'],
         display: ['"Playfair Display"', '"Cormorant Garamond"', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        handwritingPaper: ['"Caveat"', 'cursive'],
       },
       keyframes: {
         float: {

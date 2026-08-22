@@ -10,6 +10,7 @@ import LocationPicker from './components/LocationPicker/LocationPicker';
 import CalendarJourney from './components/CalendarJourney/CalendarJourney';
 import GifReveal from './components/GifReveal/GifReveal';
 import DateTicket from './components/DateTicket/DateTicket';
+import LongPaper from './components/LongPaper/LongPaper';
 import { sound } from './utils/sound';
 
 export default function App() {
@@ -193,16 +194,16 @@ export default function App() {
               setNoClickCount={setNoClickCount}
               onQuestionReady={(ready) => setIsQuestionLocked(ready)}
             />
+          </main>
 
-            {/* Scene 5 & 6: 3D YES Celebration */}
-            {acceptedInvitation && (
-              <CelebrationScene
-                onContinue={handleContinueToDestination}
-              />
-            )}
+          {/* Scenes 5–10: Post-envelope journey on one continuous long paper.
+              Sits outside <main> so the dark desk runs full-bleed like the reference. */}
+          {acceptedInvitation && (
+            <LongPaper>
+              {/* Scene 5 & 6: YES celebration intro */}
+              <CelebrationScene onContinue={handleContinueToDestination} />
 
-            {/* Scene 7: Destination Carousel (Unlocked after Yes) */}
-            {acceptedInvitation && (
+              {/* Scene 7: Destination carousel */}
               <LocationPicker
                 places={invitationConfig.places}
                 selectedPlace={selectedPlace}
@@ -210,40 +211,40 @@ export default function App() {
                 onConfirmPlace={handleConfirmPlace}
                 isConfirmed={placeConfirmed}
               />
-            )}
 
-            {/* Scene 8: 3D Calendar Journey (Unlocked after Destination) */}
-            {placeConfirmed && (
-              <CalendarJourney
-                config={invitationConfig}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-                onConfirmDate={handleConfirmDate}
-                selectedPlace={selectedPlace}
-                isLocked={dateConfirmed}
-              />
-            )}
+              {/* Scene 8: Calendar journey */}
+              {placeConfirmed && (
+                <CalendarJourney
+                  config={invitationConfig}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  onConfirmDate={handleConfirmDate}
+                  selectedPlace={selectedPlace}
+                  isLocked={dateConfirmed}
+                />
+              )}
 
-            {/* Scene 9: GIF Surprise Reveal (Unlocked after Date Confirmation) */}
-            {dateConfirmed && (
-              <GifReveal
-                config={invitationConfig}
-                selectedPlace={selectedPlace}
-                selectedDate={selectedDate}
-                onProceedToTicket={handleProceedToTicket}
-              />
-            )}
+              {/* Scene 9: GIF surprise reveal */}
+              {dateConfirmed && (
+                <GifReveal
+                  config={invitationConfig}
+                  selectedPlace={selectedPlace}
+                  selectedDate={selectedDate}
+                  onProceedToTicket={handleProceedToTicket}
+                />
+              )}
 
-            {/* Scene 10: Final Digital Date Ticket 3D (Unlocked after Surprise) */}
-            {viewTicket && (
-              <DateTicket
-                config={invitationConfig}
-                selectedPlace={selectedPlace}
-                selectedDate={selectedDate}
-                onReset={handleReset}
-              />
-            )}
-          </main>
+              {/* Scene 10: Final date ticket */}
+              {viewTicket && (
+                <DateTicket
+                  config={invitationConfig}
+                  selectedPlace={selectedPlace}
+                  selectedDate={selectedDate}
+                  onReset={handleReset}
+                />
+              )}
+            </LongPaper>
+          )}
         </>
       )}
     </div>
