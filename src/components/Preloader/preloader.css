@@ -358,27 +358,45 @@
   display: grid;
   width: 3.8rem;
   height: 3.8rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  margin: 0;
   place-items: center;
   border: 2px solid #fce7f3;
   border-radius: 50%;
   color: #ffffff;
   background: #f472b6;
+  font-family: inherit;
   font-size: 1.45rem;
   font-weight: bold;
+  line-height: 1;
   transform: translate(-50%, -50%);
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
   box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
 }
 
-.preloader-canvas__fallback-seal:hover {
+.preloader-canvas__fallback-seal:hover:not(:disabled) {
   transform: translate(-50%, -50%) scale(1.08);
   box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
 }
 
-.preloader-canvas__fallback-seal:active {
+.preloader-canvas__fallback-seal:active:not(:disabled) {
   transform: translate(-50%, -50%) scale(0.96);
+}
+
+.preloader-canvas__fallback-seal:focus-visible {
+  outline: 2px solid #ec4899;
+  outline-offset: 4px;
+}
+
+.preloader-canvas__fallback-seal:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
 }
 
 @media (max-height: 600px) {
@@ -435,7 +453,8 @@
   .preloader__progress-fill,
   .preloader__progress-panel,
   .preloader__hint-panel,
-  .preloader__cta {
+  .preloader__cta,
+  .preloader-canvas__fallback-seal {
     transition-duration: 0.01ms !important;
   }
   .preloader__badge-dot {

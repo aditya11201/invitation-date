@@ -7,7 +7,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
   const [webGLAvailable, setWebGLAvailable] = useState(true);
   const sceneProgressRef = useRef(sceneProgress);
 
-  // Keep sceneProgress updated in ref for continuous 60fps render loop without re-instantiating scene
+  // Keep sceneProgress updated in ref for continuous render loop without re-instantiating scene
   useEffect(() => {
     sceneProgressRef.current = sceneProgress;
   }, [sceneProgress]);
@@ -33,6 +33,11 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
     let heartGeo, celebGeo;
     let heartMaterials = [];
 
+    const getAdaptiveDpr = (w) => {
+      const maxDpr = w >= 1024 ? 1.25 : 1.5;
+      return Math.min(window.devicePixelRatio || 1, maxDpr);
+    };
+
     try {
       // 1. Scene & Camera setup
       scene = new THREE.Scene();
@@ -42,14 +47,14 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       camera.position.set(0, 0, 16);
       sceneObjectsRef.current.camera = camera;
 
-      // 2. Guarded WebGL Renderer
+      // 2. Guarded WebGL Renderer with adaptive DPR
       renderer = new THREE.WebGLRenderer({
         alpha: true,
         antialias: true,
-        powerPreference: 'high-performance'
+        powerPreference: 'high-performance',
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(getAdaptiveDpr(width));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.1;
       container.appendChild(renderer.domElement);
@@ -77,7 +82,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
     directionalLight.position.set(0, 10, 10);
     scene.add(directionalLight);
 
-    // 4. Create Floating Love Bubble Hearts
+    // 4. Create Floating Love Bubble Hearts (optimized material & count)
     heartGeo = createHeartGeometry(0.8);
     const colors = [
       0xf472b6, // Soft pink
@@ -86,23 +91,22 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       0xc084fc, // Lavender
       0xe879f9, // Soft magenta
       0xffb6c1, // Light pink
-      0xfce7f3  // Ivory rose
+      0xfce7f3, // Ivory rose
     ];
 
-    heartMaterials = colors.map(c => new THREE.MeshPhysicalMaterial({
-      color: c,
-      roughness: 0.15,
-      metalness: 0.05,
-      transmission: 0.35,
-      thickness: 0.5,
-      ior: 1.4,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
-      transparent: true,
-      opacity: 0.85
-    }));
+    heartMaterials = colors.map(
+      (c) =>
+        new THREE.MeshStandardMaterial({
+          color: c,
+          roughness: 0.2,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.82,
+          depthWrite: false,
+        }),
+    );
 
-    const heartCount = window.innerWidth < 768 ? 24 : 45;
+    const heartCount = window.innerWidth < 768 ? 16 : 24;
     const hearts = [];
 
     for (let i = 0; i < heartCount; i++) {
@@ -112,17 +116,19 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       const isForeground = i % 5 === 0;
       const isBackground = i % 2 === 0;
 
-      const z = isForeground 
-        ? THREE.MathUtils.randFloat(4, 10) 
-        : (isBackground ? THREE.MathUtils.randFloat(-15, -4) : THREE.MathUtils.randFloat(-3, 3));
-      
+      const z = isForeground
+        ? THREE.MathUtils.randFloat(4, 10)
+        : isBackground
+          ? THREE.MathUtils.randFloat(-15, -4)
+          : THREE.MathUtils.randFloat(-3, 3);
+
       const xRange = isForeground ? 12 : 20;
       const yRange = 18;
 
       mesh.position.set(
         THREE.MathUtils.randFloatSpread(xRange),
         THREE.MathUtils.randFloatSpread(yRange),
-        z
+        z,
       );
 
       const baseScale = isForeground ? THREE.MathUtils.randFloat(0.4, 0.8) : THREE.MathUtils.randFloat(0.5, 1.2);
@@ -131,7 +137,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       mesh.rotation.set(
         Math.random() * Math.PI,
         Math.random() * Math.PI,
-        Math.random() * Math.PI
+        Math.random() * Math.PI,
       );
 
       mesh.userData = {
@@ -145,7 +151,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
         wobbleSpeed: THREE.MathUtils.randFloat(0.8, 2.0),
         wobbleAmp: THREE.MathUtils.randFloat(0.3, 0.8),
         phase: Math.random() * Math.PI * 2,
-        isForeground
+        isForeground,
       };
 
       scene.add(mesh);
@@ -154,7 +160,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
     sceneObjectsRef.current.hearts = hearts;
 
     // 5. Celebration particle system (initialized on standby)
-    const celebCount = 80;
+    const celebCount = 40;
     const celebParticles = [];
     celebGeo = createHeartGeometry(0.4);
 
@@ -176,7 +182,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
         rotSpeedX: 0,
         rotSpeedY: 0,
         life: 0,
-        maxLife: 1
+        maxLife: 1,
       });
     }
     sceneObjectsRef.current.celebrationParticles = celebParticles;
@@ -201,17 +207,30 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      renderer.setPixelRatio(getAdaptiveDpr(w));
     };
 
     window.addEventListener('resize', handleResize);
 
-    // 8. Main Render Animation Loop
+    // 8. Document visibility tracking to pause rendering when hidden
+    let isDocumentHidden = document.hidden;
+    const handleVisibilityChange = () => {
+      isDocumentHidden = document.hidden;
+      if (!isDocumentHidden) {
+        clock.getDelta(); // reset delta to prevent time jump
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // 9. Main Render Animation Loop
     let animationFrameId;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
+      if (isDocumentHidden) return;
+
+      const delta = Math.min(clock.getDelta(), 0.1);
       const elapsedTime = clock.getElapsedTime();
 
       // Smooth camera mouse parallax + scroll depth influence
@@ -241,7 +260,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       // Animate background floating love bubble hearts
       hearts.forEach((heart) => {
         const u = heart.userData;
-        
+
         // Gentle bubble floating upward
         heart.position.y += u.speedY * 60 * delta;
         if (heart.position.y > 12) {
@@ -261,7 +280,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       // Animate celebration burst particles
       if (sceneObjectsRef.current.isCelebrationActive) {
         let anyActive = false;
-        celebParticles.forEach(p => {
+        celebParticles.forEach((p) => {
           if (p.active) {
             anyActive = true;
             p.mesh.position.x += p.velX * delta * 60;
@@ -298,12 +317,13 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
 
     animate();
 
-    // 9. Cleanup
+    // 10. Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('touchmove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
 
       if (container && renderer && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -312,7 +332,7 @@ export default function ThreeScene({ isCelebration = false, sceneProgress = 0 })
       if (heartGeo) heartGeo.dispose();
       if (celebGeo) celebGeo.dispose();
       celebParticles.forEach(({ mesh }) => mesh.material.dispose());
-      heartMaterials.forEach(m => m.dispose());
+      heartMaterials.forEach((m) => m.dispose());
       if (renderer) renderer.dispose();
     };
   }, []);
