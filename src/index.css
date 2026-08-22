@@ -148,3 +148,461 @@
   0% { opacity: 0; transform: scale(0.9) rotate(-3deg); }
   100% { opacity: 1; transform: scale(1) rotate(1deg); }
 }
+
+.destination-book-selector {
+  --book-ink: #332c2f;
+  --book-paper: #fdfaf2;
+  --book-rose: #a34e5d;
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  min-height: 100svh;
+  height: 100svh;
+  perspective: 1600px;
+  overflow: hidden;
+  isolation: isolate;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.carousel-stage,
+.destination-book-selector__stage {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: clamp(380px, 52vh, 520px);
+  perspective: 1600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: pan-y;
+  isolation: isolate;
+}
+
+/* ============ BUKU 3D ============ */
+.date-card,
+.destination-book {
+  position: absolute;
+  width: 310px;
+  height: 440px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  will-change: transform, opacity;
+  background: transparent;
+  border: none;
+}
+
+/* punggung tumpukan halaman (fore-edge) di kanan */
+.date-card::after,
+.destination-book::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  right: -8px;
+  width: 9px;
+  background: repeating-linear-gradient(to bottom, #fffdf6 0 2px, #d8d0bf 2px 3px);
+  border-radius: 2px;
+  transform: translateZ(-2px);
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+}
+
+/* sampul belakang buku */
+.book-backcover,
+.destination-book__back {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(-4px);
+  border-radius: 6px 18px 18px 6px;
+  background: linear-gradient(135deg, var(--leather, #7c2a44), #17100d 140%);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* block halaman (isi buku) */
+.book-pages,
+.destination-book__pages {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 10px;
+  right: 3px;
+  transform: translateZ(-1px);
+  border-radius: 3px 14px 14px 3px;
+  background:
+    linear-gradient(90deg, transparent 0 30px, rgba(226, 110, 110, 0.35) 30px 31px, transparent 31px),
+    repeating-linear-gradient(transparent 0 27px, rgba(120, 100, 80, 0.10) 27px 28px),
+    #fdfaf2;
+  box-shadow: inset -8px 0 16px rgba(90, 70, 40, 0.12), inset 3px 0 6px rgba(90, 70, 40, 0.10);
+  overflow: hidden;
+}
+
+.date-card.active .book-pages,
+.destination-book.active .destination-book__pages,
+.destination-book[data-book-state="active"] .destination-book__pages {
+  box-shadow: inset -8px 0 16px rgba(90, 70, 40, 0.12), 0 0 0 2px rgba(255, 138, 163, 0.55), 0 24px 50px -18px rgba(235, 100, 140, 0.35);
+}
+
+.page-content,
+.destination-book__content {
+  height: 100%;
+  padding: 24px 20px 16px 42px;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-chapter,
+.destination-book__chapter {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #b08968;
+  margin-bottom: 8px;
+}
+
+.page-title,
+.destination-book__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #3d3128;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.page-text,
+.destination-book__copy {
+  font-size: 0.7rem;
+  line-height: 1.65;
+  color: #6b5d4f;
+  font-weight: 500;
+}
+
+.page-chips,
+.destination-book__chips,
+.destination-book__highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.page-chips span,
+.destination-book__chips span,
+.destination-book__highlights span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #fff;
+  border: 1.5px dashed #cbb89a;
+  color: #7a6a55;
+  transform: rotate(-1deg);
+}
+
+.page-chips span:nth-child(2),
+.destination-book__chips span:nth-child(2),
+.destination-book__highlights span:nth-child(2) {
+  transform: rotate(1.5deg);
+}
+
+.page-num,
+.destination-book__page-number {
+  margin-top: auto;
+  text-align: center;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 0.7rem;
+  color: #a08d72;
+}
+
+/* ============ COVER (yang membuka) ============ */
+.book-cover,
+.destination-book__cover {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.cover-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px 18px 18px 6px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.cover-front,
+.destination-book__cover-front {
+  transform: translateZ(3px);
+  background: linear-gradient(135deg, var(--c1, #ff758c), var(--c2, #ff7eb3));
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.4);
+}
+
+.cover-back,
+.destination-book__cover-back {
+  transform: rotateY(180deg) translateZ(3px);
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.10) 0 8px, transparent 9px),
+    radial-gradient(circle at 75% 70%, rgba(255, 255, 255, 0.08) 0 6px, transparent 7px),
+    linear-gradient(135deg, var(--leather, #7c2a44), #140d0a 150%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  text-align: center;
+}
+
+.cover-back .in-emoji,
+.destination-book__in-emoji {
+  font-size: 2rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.cover-back p,
+.destination-book__cover-back p {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: rgba(255, 244, 229, 0.85);
+  line-height: 1.6;
+}
+
+/* spine buku */
+.cover-spine,
+.destination-book__spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 34px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.45), rgba(255, 255, 255, 0.22) 55%, rgba(0, 0, 0, 0.28));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.cover-spine span,
+.destination-book__spine span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* frame emas sampul */
+.cover-deco,
+.destination-book__deco {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 46px;
+  right: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.cover-deco::after,
+.destination-book__deco::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 7px;
+}
+
+.cover-emoji,
+.destination-book__emoji {
+  position: absolute;
+  top: 50%;
+  left: 55%;
+  transform: translate(-50%, -62%);
+  font-size: 4.6rem;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+}
+
+.cover-title,
+.destination-book__cover-title {
+  position: absolute;
+  left: 46px;
+  right: 14px;
+  bottom: 44px;
+  text-align: center;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.5px;
+}
+
+.cover-author,
+.destination-book__author {
+  position: absolute;
+  left: 46px;
+  right: 14px;
+  bottom: 24px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.card-badge,
+.destination-book__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.card-tag,
+.destination-book__tag {
+  position: absolute;
+  top: 14px;
+  left: 44px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  background: rgba(20, 14, 10, 0.5);
+  color: #ffe9c9;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transform: skewX(-6deg);
+}
+
+.destination-book-selector__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 639px) {
+  .carousel-stage,
+  .destination-book-selector__stage {
+    height: clamp(340px, 48vh, 400px);
+  }
+  .date-card,
+  .destination-book {
+    width: 260px;
+    height: 370px;
+  }
+  .page-content,
+  .destination-book__content {
+    padding: 20px 14px 14px 36px;
+  }
+  .page-title,
+  .destination-book__title {
+    font-size: 1.25rem;
+    margin-bottom: 6px;
+  }
+  .page-text,
+  .destination-book__copy {
+    font-size: 0.65rem;
+    line-height: 1.5;
+  }
+  .cover-emoji,
+  .destination-book__emoji {
+    font-size: 3.8rem;
+  }
+  .cover-title,
+  .destination-book__cover-title {
+    font-size: 1.15rem;
+    bottom: 38px;
+  }
+  .cover-author,
+  .destination-book__author {
+    bottom: 18px;
+    font-size: 0.54rem;
+  }
+  .card-badge,
+  .destination-book__badge {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    top: 10px;
+    right: 10px;
+  }
+  .card-tag,
+  .destination-book__tag {
+    top: 12px;
+    left: 40px;
+    padding: 4px 10px;
+    font-size: 0.52rem;
+  }
+}
+
+@media (max-height: 680px) and (min-width: 640px) {
+  .carousel-stage,
+  .destination-book-selector__stage {
+    height: 380px;
+  }
+  .date-card,
+  .destination-book {
+    width: 270px;
+    height: 380px;
+  }
+  .page-content,
+  .destination-book__content {
+    padding: 20px 16px 14px 38px;
+  }
+  .page-title,
+  .destination-book__title {
+    font-size: 1.25rem;
+  }
+  .cover-emoji,
+  .destination-book__emoji {
+    font-size: 3.8rem;
+  }
+  .cover-title,
+  .destination-book__cover-title {
+    font-size: 1.15rem;
+    bottom: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .destination-book-selector *,
+  .destination-book-selector *::before,
+  .destination-book-selector *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .destination-book-selector .destination-book-selector__media {
+    transition-duration: 120ms !important;
+  }
+}

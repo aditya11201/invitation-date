@@ -14,6 +14,21 @@ export const invitationConfig = {
     scrollPrompt: "Scroll down to open your letter"
   },
 
+  preloader: {
+    badge: "Express Delivery • For {{recipientName}}",
+    title: "A Sealed Secret for {{recipientName}}",
+    coverHeadline: "A Sealed Secret",
+    coverSubtext: "is waiting for you...",
+    sealHint: "Tap the gold seal on the envelope to open",
+    openLabel: "Open {{recipientName}}'s invitation",
+    phases: [
+      { start: 0, key: "crafting", message: "Folding a little note..." },
+      { start: 31, key: "writing", message: "Writing something just for {{recipientName}}..." },
+      { start: 66, key: "sealing", message: "Adding a touch of golden wax..." },
+      { start: 91, key: "ready", message: "Your invitation is ready!" }
+    ]
+  },
+
   letter: {
     tag: "A Note From My Heart 💌",
     greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
@@ -45,8 +60,10 @@ export const invitationConfig = {
       copy: "Let's get lost with the fishies together 🐠💗",
       accent: "from-cyan-400/20 via-blue-500/20 to-indigo-600/30",
       themeColor: "#38bdf8",
-      poster: "/assets/places/aquarium.webp",
-      video: "/assets/places/aquarium.mp4",
+      media: {
+        type: "image",
+        src: "/assets/places/aquarium-date.webp",
+      },
       highlights: ["Manta Rays", "Glass Tunnel Walk", "Holding Hands"]
     },
     {
@@ -56,42 +73,24 @@ export const invitationConfig = {
       copy: "Movie, popcorn, and maybe stealing your hand 🍿🤏💗",
       accent: "from-purple-500/20 via-pink-500/20 to-rose-600/30",
       themeColor: "#c084fc",
-      poster: "/assets/places/cinema.webp",
-      video: "/assets/places/cinema.mp4",
+      media: {
+        type: "image",
+        src: "/assets/places/cinema-date.webp",
+      },
       highlights: ["Caramel Popcorn", "Cozy Premiere Seats", "Post-Movie Chill"]
     },
     {
-      id: "ragunan",
-      title: "Ragunan Zoo Date",
-      emoji: "🐘",
-      copy: "A cute little zoo adventure with you 🐘💕",
-      accent: "from-emerald-400/20 via-teal-500/20 to-lime-600/30",
-      themeColor: "#34d399",
-      poster: "/assets/places/ragunan.webp",
-      video: "/assets/places/ragunan.mp4",
-      highlights: ["Tandem Bicycle Ride", "Otters & Capybaras", "Iced Matcha Picnic"]
-    },
-    {
-      id: "dufan",
-      title: "Ancol / Dufan Date",
-      emoji: "🎢",
-      copy: "Screaming together sounds romantic enough 🎢💗",
-      accent: "from-amber-400/20 via-orange-500/20 to-rose-500/30",
-      themeColor: "#fbbf24",
-      poster: "/assets/places/dufan.webp",
-      video: "/assets/places/dufan.mp4",
-      highlights: ["Ferris Wheel Sunset", "Roller Coaster Screams", "Cotton Candy"]
-    },
-    {
-      id: "lego",
-      title: "Lego Date",
-      emoji: "🧱",
-      copy: "Let's build something cute together 🧱✨",
-      accent: "from-pink-400/20 via-fuchsia-500/20 to-purple-600/30",
-      themeColor: "#f472b6",
-      poster: "/assets/places/lego.webp",
-      video: "/assets/places/lego.mp4",
-      highlights: ["Custom Mini-figs", "Building Our Dream House", "Coffee & Cookies"]
+      id: "museum",
+      title: "Museum Date",
+      emoji: "🏛️",
+      copy: "Strolling through quiet galleries, admiring art, and making cute memories 🏛️✨",
+      accent: "from-amber-400/20 via-orange-500/20 to-rose-600/30",
+      themeColor: "#e0a96d",
+      media: {
+        type: "image",
+        src: "/assets/places/museum-date.webp",
+      },
+      highlights: ["Art Exhibits", "Quiet Walk", "Aesthetic Photos"]
     }
   ],
 

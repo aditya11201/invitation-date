@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Heart, Check } from 'lucide-react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Heart, Sparkles, Check } from 'lucide-react';
+import { gsap } from 'gsap';
 import { PlaceVisual } from '../PlacePreviews/PlaceVisual';
+import BookCard from './BookCard';
 import { sound } from '../../utils/sound';
+import { resolveAssetUrl } from '../../utils/assets';
+
+const COVER_OPEN = -158;
+const COVER_NEAR = -14;
+const COVER_CLOSED = 0;
+
+const getCircularOffset = (index, activeIndex, length) => {
+  let offset = index - activeIndex;
+  const midpoint = Math.floor(length / 2);
+  if (offset > midpoint) offset -= length;
+  if (offset < -midpoint) offset += length;
+  return offset;
+};
 
 export default function LocationPicker({
   places = [],
@@ -11,213 +26,403 @@ export default function LocationPicker({
   isConfirmed = false,
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [touchStartX, setTouchStartX] = useState(null);
 
-  const isInteractionDisabled = isConfirmed;
+  const activeIndexRef = useRef(0);
+  const prevActiveIndexRef = useRef(0);
+  const updateRef = useRef(null);
+
+  const rootRef = useRef(null);
+  const cardRefs = useRef([]);
+  const coverRefs = useRef([]);
+  const backdropRefs = useRef([]);
+  const confirmTimeoutRef = useRef(null);
+  const [touchStart, setTouchStart] = useState(null);
+
+  // Preload all destination images on mount so no decode stall happens during switch
+  useEffect(() => {
+    places.forEach((place) => {
+      if (place.media?.src) {
+        const img = new Image();
+        img.src = resolveAssetUrl(place.media.src);
+        if (img.decode) {
+          img.decode().catch(() => {});
+        }
+      }
+    });
+  }, [places]);
+
+  useEffect(() => () => clearTimeout(confirmTimeoutRef.current), []);
+
+  // Mount-once GSAP context & matchMedia
+  useLayoutEffect(() => {
+    if (places.length === 0) return undefined;
+
+    let mm;
+    const ctx = gsap.context(() => {
+      mm = gsap.matchMedia();
+
+      mm.add(
+        {
+          all: 'all',
+          mobile: '(max-width: 639px)',
+          reduceMotion: '(prefers-reduced-motion: reduce)',
+        },
+        ({ conditions }) => {
+          const isReduceMotion = conditions.reduceMotion;
+          const isMobile = conditions.mobile;
+          const cardDuration = isReduceMotion ? 0.12 : 0.75;
+          const bgDuration = isReduceMotion ? 0.12 : 0.8;
+
+          const update = (isInitial = false) => {
+            const current = activeIndexRef.current;
+            const previous = prevActiveIndexRef.current;
+
+            // 1. Persistent background crossfade:
+            // Incoming layer fades to 1 over ~0.8s ('power2.out') on top (zIndex: 2).
+            // Outgoing previous layer stays fully visible beneath it (zIndex: 1) and fades to 0 with delay.
+            // Other idle layers remain at 0 (zIndex: 0).
+            places.forEach((_, index) => {
+              const el = backdropRefs.current[index];
+              if (!el) return;
+              const isTarget = index === current;
+              const wasPrevious = index === previous;
+
+              if (isInitial) {
+                gsap.set(el, {
+                  zIndex: isTarget ? 2 : 1,
+                  opacity: isTarget ? 1 : 0,
+                });
+                return;
+              }
+
+              if (isTarget) {
+                gsap.set(el, { zIndex: 2 });
+                gsap.to(el, {
+                  opacity: 1,
+                  duration: bgDuration,
+                  ease: 'power2.out',
+                  overwrite: 'auto',
+                });
+              } else if (wasPrevious) {
+                gsap.set(el, { zIndex: 1 });
+                // Hold fully visible while the incoming layer rises, then fade fast
+                // so stacked coverage never drops below ~99% mid-transition.
+                gsap.to(el, {
+                  opacity: 0,
+                  duration: bgDuration * 0.55,
+                  delay: bgDuration * 0.55,
+                  ease: 'power2.in',
+                  overwrite: 'auto',
+                });
+              } else {
+                gsap.set(el, { zIndex: 0 });
+                gsap.to(el, {
+                  opacity: 0,
+                  duration: bgDuration,
+                  ease: 'power2.out',
+                  overwrite: 'auto',
+                });
+              }
+            });
+
+            // 2. 3D Card Depth Tweens:
+            cardRefs.current.forEach((card, index) => {
+              if (!card) return;
+              const offset = getCircularOffset(index, current, places.length);
+              const isCenter = offset === 0;
+              const absOffset = Math.abs(offset);
+
+              // Set stacking order upfront to prevent mid-tween zIndex pops
+              gsap.set(card, {
+                zIndex: isCenter ? 30 : Math.max(1, 20 - absOffset * 5),
+              });
+
+              const cardProps = {
+                xPercent: -50,
+                yPercent: -50,
+                x: offset * (isMobile ? 200 : 280),
+                scale: isCenter ? 1.05 : Math.max(0.72, 1 - absOffset * 0.2),
+                opacity: Math.max(0.15, 1 - absOffset * 0.38),
+                overwrite: 'auto',
+              };
+
+              if (isReduceMotion) {
+                cardProps.z = 0;
+                cardProps.rotateY = 0;
+                cardProps.duration = 0.12;
+                cardProps.ease = 'none';
+              } else {
+                cardProps.z = isCenter ? 90 : -absOffset * 150;
+                cardProps.rotateY = offset * -28;
+                cardProps.duration = cardDuration;
+                cardProps.ease = 'power3.out';
+              }
+
+              if (isInitial) {
+                gsap.set(card, cardProps);
+              } else {
+                gsap.to(card, cardProps);
+              }
+
+              // 3. Book Cover Flap Tweens:
+              if (coverRefs.current[index]) {
+                const coverEl = coverRefs.current[index];
+                if (isReduceMotion) {
+                  const coverProps = {
+                    rotationY: 0,
+                    opacity: isCenter ? 0 : 1,
+                    scale: isCenter ? 0.98 : 1,
+                    duration: cardDuration,
+                    ease: 'none',
+                    overwrite: 'auto',
+                  };
+                  if (isInitial) {
+                    gsap.set(coverEl, coverProps);
+                  } else {
+                    gsap.to(coverEl, coverProps);
+                  }
+                } else {
+                  const targetAngle = isCenter ? COVER_OPEN : absOffset === 1 ? COVER_NEAR : COVER_CLOSED;
+                  const coverDuration = isCenter ? 1.15 : absOffset === 1 ? 0.8 : 0.6;
+                  const coverDelay = isCenter ? 0.18 : 0;
+                  if (isInitial) {
+                    gsap.set(coverEl, { rotationY: targetAngle });
+                  } else {
+                    gsap.to(coverEl, {
+                      rotationY: targetAngle,
+                      duration: coverDuration,
+                      delay: coverDelay,
+                      ease: 'power3.inOut',
+                      overwrite: 'auto',
+                    });
+                  }
+                }
+              }
+            });
+          };
+
+          updateRef.current = update;
+          update(true);
+        },
+      );
+    }, rootRef);
+
+    return () => {
+      mm?.revert();
+      ctx.revert();
+    };
+  }, [places.length]);
+
+  // Trigger update on activeIndex change without recreating GSAP context
+  useLayoutEffect(() => {
+    prevActiveIndexRef.current = activeIndexRef.current;
+    activeIndexRef.current = activeIndex;
+    updateRef.current?.(false);
+  }, [activeIndex]);
+
+  if (places.length === 0) return null;
+
   const currentPlace = places[activeIndex] || places[0];
 
-  const handleNext = () => {
-    if (isInteractionDisabled) return;
+  const goTo = (nextIndex) => {
+    if (isConfirmed || places.length < 2) return;
+    const normalizedIndex = ((nextIndex % places.length) + places.length) % places.length;
+    if (normalizedIndex === activeIndex) return;
     sound.playClick();
-    setActiveIndex((prev) => (prev + 1) % places.length);
+    setActiveIndex(normalizedIndex);
   };
 
-  const handlePrev = () => {
-    if (isInteractionDisabled) return;
-    sound.playClick();
-    setActiveIndex((prev) => (prev - 1 + places.length) % places.length);
+  const handleNext = () => goTo(activeIndex + 1);
+  const handlePrev = () => goTo(activeIndex - 1);
+
+  const handleTouchStart = (event) => {
+    if (isConfirmed) return;
+    const touch = event.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
   };
 
-  // Touch swipe support for mobile
-  const handleTouchStart = (e) => {
-    if (isInteractionDisabled) return;
-    setTouchStartX(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e) => {
-    if (isInteractionDisabled || touchStartX === null) return;
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 45) {
-      if (diff > 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
+  const handleTouchEnd = (event) => {
+    if (!touchStart || isConfirmed) return;
+    const touch = event.changedTouches[0];
+    const dx = touchStart.x - touch.clientX;
+    const dy = touchStart.y - touch.clientY;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      dx > 0 ? handleNext() : handlePrev();
     }
-    setTouchStartX(null);
+    setTouchStart(null);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'ArrowRight') handleNext();
+    if (event.key === 'ArrowLeft') handlePrev();
   };
 
   const handleChooseDestination = () => {
-    if (isInteractionDisabled) return;
+    if (isConfirmed) return;
     sound.playPop(1.3);
     sound.playSparkle();
     onSelectPlace(currentPlace.title);
-    setTimeout(() => {
-      onConfirmPlace();
-    }, 400);
+    clearTimeout(confirmTimeoutRef.current);
+    confirmTimeoutRef.current = setTimeout(onConfirmPlace, 400);
   };
 
   return (
     <section
+      ref={rootRef}
       id="destination-picker-section"
-      className="relative py-10 border-b border-burgundy-200/60 space-y-8"
+      role="region"
+      aria-label="Date destination selector"
+      tabIndex={0}
+      aria-roledescription="carousel"
+      onKeyDown={handleKeyDown}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      className="destination-book-selector relative flex min-h-[100svh] h-[100svh] w-screen max-w-[100vw] flex-col items-center justify-between overflow-hidden"
     >
+      {/* Persistent Full-bleed Background Layers with continuous GSAP crossfade */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        {places.map((place, index) => (
+          <div
+            key={place.id}
+            ref={(node) => {
+              backdropRefs.current[index] = node;
+            }}
+            className="absolute inset-0 h-full w-full pointer-events-none"
+            style={{
+              '--place-color': place.themeColor,
+            }}
+          >
+            <PlaceVisual place={place} isActive={index === activeIndex} />
+            <div className="destination-book-selector__scrim absolute inset-0" />
+          </div>
+        ))}
+      </div>
 
-      {/* Header */}
-      <div className="text-center space-y-2 relative z-10">
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">STEP 01 • THE DESTINATION</span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">Where should we go? 💗</h2>
-        <p className="text-xs sm:text-sm text-ink/70">
+      <p className="sr-only" role="status" aria-live="polite">
+        {currentPlace.title}
+      </p>
+
+      {/* Top Header Overlay */}
+      <header className="relative z-10 flex flex-col items-center text-center max-w-xl mx-auto px-4 pt-3 sm:pt-5">
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-rose-600 shadow-sm backdrop-blur-md">
+          <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+          <span>Step 1: The Destination 📍</span>
+        </div>
+        <h2
+          className="mb-1.5 font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)]"
+          style={{ textWrap: 'balance' }}
+        >
+          Where should we go? <span className="inline-block animate-bounce">💗</span>
+        </h2>
+        <p className="text-xs sm:text-sm font-medium text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
           {isConfirmed ? 'Destination confirmed!' : 'Swipe or tap the arrows to explore our options'}
         </p>
+      </header>
+
+      {/* Centered 3D Book Carousel Stage */}
+      <div
+        className="carousel-stage destination-book-selector__stage relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center pointer-events-auto"
+        style={{ touchAction: 'pan-y' }}
+      >
+        {places.map((place, index) => (
+          <BookCard
+            key={place.id}
+            ref={(node) => {
+              cardRefs.current[index] = node;
+            }}
+            coverRef={(node) => {
+              coverRefs.current[index] = node;
+            }}
+            place={place}
+            index={index}
+            offset={getCircularOffset(index, activeIndex, places.length)}
+            isActive={index === activeIndex}
+            isConfirmed={isConfirmed}
+            onSelect={goTo}
+          />
+        ))}
       </div>
 
-      {/* 3D Carousel Stage */}
-      <div className="relative w-full h-[420px] sm:h-[460px] flex items-center justify-center perspective-[1200px] overflow-hidden">
-        {places.map((place, idx) => {
-          let offset = idx - activeIndex;
-          if (offset < -Math.floor(places.length / 2)) offset += places.length;
-          if (offset > Math.floor(places.length / 2)) offset -= places.length;
-
-          const isActive = offset === 0;
-          const isVisible = Math.abs(offset) <= 2;
-
-          if (!isVisible) return null;
-
-          const translateX = offset * (window.innerWidth < 640 ? 90 : 170);
-          const translateZ = isActive ? 0 : -140 - Math.abs(offset) * 60;
-          const rotateY = offset * -18;
-          const scale = isActive ? 1 : 0.82;
-          const opacity = isActive ? 1 : 0.45;
-
-          return (
-            <div
-              key={place.id}
-              onClick={() => {
-                if (!isActive && !isInteractionDisabled) {
-                  sound.playClick();
-                  setActiveIndex(idx);
-                }
-              }}
-              className={`absolute w-[260px] sm:w-[320px] h-[360px] sm:h-[400px] rounded-xl p-3 bg-white border border-burgundy-200/80 transition-all duration-500 flex flex-col justify-between circled-option ${
-                isInteractionDisabled && !isActive ? 'pointer-events-none opacity-20' : 'cursor-pointer'
-              } ${
-                isActive
-                  ? 'selected shadow-lg z-30'
-                  : 'z-10 opacity-45 blur-[0.5px]'
-              }`}
-              style={{
-                transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                opacity: opacity,
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              {/* Media Card Header Preview */}
-              <div className="relative w-full h-[190px] sm:h-[210px] rounded-lg overflow-hidden shadow-inner">
-                <PlaceVisual place={place} isActive={isActive} />
-
-                {/* Floating Emoji Badge */}
-                <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white shadow-md border border-burgundy-200 flex items-center justify-center text-xl">
-                  {place.emoji}
-                </div>
-              </div>
-
-              {/* Destination Card Body */}
-              <div className="p-2 sm:p-3 flex flex-col justify-between flex-grow">
-                <div>
-                  <h3 className="font-serif font-bold text-lg text-burgundy-900 tracking-tight">
-                    {place.title}
-                  </h3>
-                  <p className="font-sans text-xs sm:text-sm text-ink/70 font-medium mt-1 leading-snug" style={{ textWrap: 'pretty' }}>
-                    {place.copy}
-                  </p>
-                </div>
-
-                {/* Highlights Tags */}
-                {isActive && place.highlights && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {place.highlights.map((h, i) => (
-                      <span key={i} className="text-[10px] font-semibold text-burgundy-800 bg-burgundy-50 px-2 py-0.5 rounded-full border border-burgundy-200">
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Navigation Dots & Arrow Controls */}
-      <div className="flex items-center gap-6 mt-6 z-20">
-        <button
-          onClick={handlePrev}
-          disabled={isInteractionDisabled}
-          aria-label="Previous destination"
-          className={`w-11 h-11 rounded-full border shadow-md flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${
-            isInteractionDisabled
-              ? 'opacity-40 border-burgundy-100 text-burgundy-200 cursor-not-allowed'
-              : 'bg-white hover:bg-burgundy-50 text-burgundy-800 border-burgundy-200 active:scale-95 cursor-pointer'
-          }`}
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-
-        {/* Carousel Indicators */}
-        <div className="flex items-center gap-2">
-          {places.map((_, i) => (
+      {/* Bottom Overlays: Dots, Navigation, and Action CTA */}
+      <footer className="relative z-20 flex flex-col items-center gap-3 pb-3 sm:pb-6 px-4 w-full max-w-md mx-auto">
+        {/* Navigation Dots */}
+        <div className="flex items-center gap-1" aria-label="Destination slides">
+          {places.map((place, index) => (
             <button
-              key={i}
-              disabled={isInteractionDisabled}
-              onClick={() => {
-                if (isInteractionDisabled) return;
-                sound.playClick();
-                setActiveIndex(i);
-              }}
-              aria-label={`Go to slide ${i + 1}`}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                isInteractionDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
-              } ${
-                i === activeIndex ? 'w-8 bg-burgundy-600' : 'w-2.5 bg-burgundy-200'
+              key={place.id}
+              type="button"
+              disabled={isConfirmed}
+              onClick={() => goTo(index)}
+              aria-label={`Go to slide ${index + 1}: ${place.title}`}
+              aria-current={index === activeIndex ? 'true' : undefined}
+              className={`flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+                isConfirmed ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110 active:scale-95'
               }`}
-            />
+            >
+              <span
+                aria-hidden="true"
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  index === activeIndex
+                    ? 'w-8 bg-gradient-to-r from-pink-400 to-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.6)]'
+                    : 'w-2.5 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            </button>
           ))}
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={isInteractionDisabled}
-          aria-label="Next destination"
-          className={`w-11 h-11 rounded-full border shadow-md flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${
-            isInteractionDisabled
-              ? 'opacity-40 border-burgundy-100 text-burgundy-200 cursor-not-allowed'
-              : 'bg-white hover:bg-burgundy-50 text-burgundy-800 border-burgundy-200 active:scale-95 cursor-pointer'
-          }`}
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* CTA Button to Confirm Destination */}
-      <div className="mt-8 z-20">
-        {isConfirmed ? (
-          <div className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-bold text-base shadow-sm animate-heartPop">
-            <Check className="w-5 h-5 text-burgundy-600" />
-            <span>Destination Locked: {selectedPlace || currentPlace.title} 💗</span>
-          </div>
-        ) : (
+        {/* Action Row: Prev, CTA, Next */}
+        <div className="flex items-center justify-between w-full gap-3 sm:gap-4">
           <button
-            onClick={handleChooseDestination}
-            className="group inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
+            type="button"
+            onClick={handlePrev}
+            disabled={isConfirmed}
+            aria-label="Previous destination"
+            className={`flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-white/40 bg-white/80 backdrop-blur-md text-slate-800 shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+              isConfirmed
+                ? 'cursor-not-allowed opacity-40 border-slate-300'
+                : 'cursor-pointer hover:bg-white hover:scale-105 active:scale-95 hover:shadow-xl'
+            }`}
           >
-            <Heart className="w-4 h-4 fill-rose-400 text-rose-400 group-hover:scale-125 transition-transform" />
-            <span>Choose this date 💗</span>
+            <ChevronLeft className="h-6 w-6 text-slate-700" />
           </button>
-        )}
-      </div>
+
+          <div className="flex-1 flex justify-center">
+            {isConfirmed ? (
+              <div className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-emerald-300/80 bg-emerald-500/90 backdrop-blur-md px-6 sm:px-8 py-3 text-sm sm:text-base font-bold text-white shadow-lg animate-heartPop">
+                <Check className="h-5 w-5 text-white" />
+                <span>Destination Locked: {selectedPlace || currentPlace.title} 💗</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleChooseDestination}
+                className="group w-full inline-flex min-h-[48px] cursor-pointer items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white shadow-[0_4px_20px_rgba(244,63,94,0.45)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_6px_28px_rgba(244,63,94,0.65)] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+              >
+                <Heart className="h-5 w-5 fill-white transition-transform group-hover:scale-125 duration-300" />
+                <span>Choose this date 💗</span>
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={isConfirmed}
+            aria-label="Next destination"
+            className={`flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full border border-white/40 bg-white/80 backdrop-blur-md text-slate-800 shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+              isConfirmed
+                ? 'cursor-not-allowed opacity-40 border-slate-300'
+                : 'cursor-pointer hover:bg-white hover:scale-105 active:scale-95 hover:shadow-xl'
+            }`}
+          >
+            <ChevronRight className="h-6 w-6 text-slate-700" />
+          </button>
+        </div>
+      </footer>
     </section>
   );
 }

@@ -57,10 +57,13 @@ export default function App() {
   }, []);
 
   // Enter from preloader
-  const handleStart = () => {
-    setHasEntered(true);
+  const handleAudioUnlock = () => {
     setMusicEnabled(true);
     sound.setMuted(false, invitationConfig.audio?.backgroundMusic, invitationConfig.audio?.enableSynthesizerFallback);
+  };
+
+  const handleStart = () => {
+    setHasEntered(true);
   };
 
   // Toggle music on/off
@@ -154,16 +157,19 @@ export default function App() {
   return (
     <div className="relative min-h-screen font-sans bg-romantic-50 text-slate-800 overflow-x-hidden selection:bg-pink-200">
       {/* 3D Three.js Floating Love Bubble Scene */}
-      <ThreeScene
-        isCelebration={acceptedInvitation}
-        sceneProgress={scrollProgress}
-      />
+      {hasEntered && (
+        <ThreeScene isCelebration={acceptedInvitation} sceneProgress={scrollProgress} />
+      )}
 
       {/* Scene 0: 3D Preloader */}
       {!hasEntered && (
         <Preloader
+          onAudioUnlock={handleAudioUnlock}
           onStart={handleStart}
+          preloaderConfig={invitationConfig.preloader}
           recipientName={invitationConfig.recipientName}
+          senderName={invitationConfig.senderName}
+          year={invitationConfig.calendar.year}
         />
       )}
 
