@@ -1,39 +1,23 @@
 import React, { forwardRef } from 'react';
 import { gsap } from 'gsap';
 
+// Color themes only — book copy (tag/spine/chapter/quote/badge/emoji) lives on
+// place.book in src/config/config.js.
 const PLACE_THEMES = {
   aquarium: {
     c1: '#00c6ff',
     c2: '#0072ff',
     leather: '#0a3a63',
-    tag: 'Underwater Realm',
-    spine: 'Aquarium · Vol. 1',
-    badge: '🐟',
-    emoji: '🐠',
-    quote: '"Lost among the fishies, but I found you."',
-    chapter: 'Chapter 01 · Underwater Realm',
   },
   cinema: {
     c1: '#301847',
     c2: '#c84e89',
     leather: '#2a123c',
-    tag: 'Cozy Screening',
-    spine: 'Cinema · Vol. 2',
-    badge: '🎬',
-    emoji: '🍿',
-    quote: '"The best scene is always the one where you laugh."',
-    chapter: 'Chapter 02 · Cozy Screening',
   },
   museum: {
     c1: '#8c5040',
     c2: '#e0a96d',
     leather: '#4a2c1d',
-    tag: 'Art & History',
-    spine: 'Museum · Vol. 3',
-    badge: '🏛️',
-    emoji: '🎨',
-    quote: '"Looking at art is great, but walking beside you is the masterpiece."',
-    chapter: 'Chapter 03 · Art & History',
   },
 };
 
@@ -43,16 +27,17 @@ const BookCard = forwardRef(function BookCard(
 ) {
   const state = offset === 0 ? 'center' : Math.abs(offset) === 1 ? 'near' : 'far';
   const theme = PLACE_THEMES[place.id] || {};
+  const book = place.book || {};
 
   const c1 = place.c1 || theme.c1 || place.themeColor || '#ff758c';
   const c2 = place.c2 || theme.c2 || place.themeColor || '#ff7eb3';
   const leather = place.leather || theme.leather || '#7c2a44';
-  const tag = place.tag || theme.tag || 'Date Story';
-  const spine = place.spine || theme.spine || `${place.title} · Vol. ${index + 1}`;
-  const badge = place.badge || theme.badge || place.emoji || '💖';
-  const emoji = place.coverEmoji || theme.emoji || place.emoji || '✨';
-  const quote = place.quote || theme.quote || place.copy;
-  const chapter = place.chapter || theme.chapter || `Chapter ${String(index + 1).padStart(2, '0')}`;
+  const tag = place.tag || book.tag || 'Date Story';
+  const spine = place.spine || book.spine || `${place.title} · Vol. ${index + 1}`;
+  const badge = place.badge || book.badge || place.emoji || '💖';
+  const emoji = place.coverEmoji || book.emoji || place.emoji || '✨';
+  const quote = place.quote || book.quote || place.copy;
+  const chapter = place.chapter || book.chapter || `Chapter ${String(index + 1).padStart(2, '0')}`;
   const author = place.author || 'a date story · est. us';
 
   const handleMouseEnter = (e) => {

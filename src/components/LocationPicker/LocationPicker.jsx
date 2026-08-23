@@ -18,12 +18,14 @@ const getCircularOffset = (index, activeIndex, length) => {
 };
 
 export default function LocationPicker({
+  config,
   places = [],
   selectedPlace,
   onSelectPlace,
   onConfirmPlace,
   isConfirmed = false,
 }) {
+  const ui = config.ui.destinationPicker;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const activeIndexRef = useRef(0);
@@ -234,16 +236,16 @@ export default function LocationPicker({
       {/* Header */}
       <header className="relative z-10 flex flex-col items-center text-center max-w-xl mx-auto px-4">
         <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">
-          STEP 01 • THE DESTINATION
+          {ui.eyebrow}
         </span>
         <h2
           className="mb-1.5 mt-2 font-serif text-2xl sm:text-3xl font-bold text-burgundy-900"
           style={{ textWrap: 'balance' }}
         >
-          Where should we go? <span className="inline-block animate-bounce">💗</span>
+          {ui.heading} <span className="inline-block animate-bounce">{ui.headingHeart}</span>
         </h2>
         <p className="text-xs sm:text-sm text-ink/70">
-          {isConfirmed ? 'Destination confirmed!' : 'Swipe or tap the arrows to explore our options'}
+          {isConfirmed ? ui.confirmedHint : ui.hint}
         </p>
       </header>
 
@@ -319,7 +321,7 @@ export default function LocationPicker({
             {isConfirmed ? (
               <div className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-burgundy-200 bg-burgundy-50 px-6 sm:px-8 py-3 text-sm sm:text-base font-bold text-burgundy-800 shadow-sm animate-heartPop">
                 <Check className="h-5 w-5 text-burgundy-600" />
-                <span>Destination Locked: {selectedPlace || currentPlace.title} 💗</span>
+                <span>{`${ui.lockedPrefix} ${selectedPlace || currentPlace.title} 💗`}</span>
               </div>
             ) : (
               <button
@@ -328,7 +330,7 @@ export default function LocationPicker({
                 className="group w-full inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2.5 rounded-full bg-burgundy-900 hover:bg-burgundy-800 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-amber-100 shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
               >
                 <Heart className="h-5 w-5 fill-rose-400 text-rose-400 transition-transform group-hover:scale-125 duration-300" />
-                <span>Choose this date 💗</span>
+                <span>{ui.chooseButton}</span>
               </button>
             )}
           </div>

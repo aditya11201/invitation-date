@@ -203,10 +203,11 @@ export default function App() {
             />
 
             {/* Scene 5 & 6: YES celebration intro */}
-            <CelebrationScene onContinue={handleContinueToDestination} />
+            <CelebrationScene ui={invitationConfig.ui} onContinue={handleContinueToDestination} />
 
             {/* Scene 7: Destination carousel */}
             <LocationPicker
+              config={invitationConfig}
               places={invitationConfig.places}
               selectedPlace={selectedPlace}
               onSelectPlace={setSelectedPlace}

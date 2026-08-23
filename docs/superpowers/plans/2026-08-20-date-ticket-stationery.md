@@ -107,10 +107,10 @@ Replace the glass badge and emoji title with:
 <div className="text-center max-w-lg mx-auto mb-8 relative z-10">
   <p className="font-handwriting text-xl text-romantic-500 mb-2">for the record</p>
   <h2 className="font-display font-bold text-3xl sm:text-5xl text-romantic-900 mb-2" style={{ textWrap: 'balance' }}>
-    Our Official Date Pass
+    Our Date Ticket 🎟️
   </h2>
   <p className="text-romantic-700/80 text-sm sm:text-base font-display italic">
-    A small keepsake for the day we chose together.
+    Keep this. No backing out now 😌💗
   </p>
 </div>
 ```

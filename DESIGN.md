@@ -177,7 +177,7 @@ scene has somewhere to breathe.
 ### Paper Letter and Date Ticket
 The letter is the signature surface: a backing sheet, warm paper, a seal, airmail
 edge detail, and a typed question. The ticket repeats the same paper language at
-the end, adding a small surprise thumbnail without turning the keepsake into a
+the end, adding a small surprise thumbnail without turning FOR US 💗 into a
 dashboard card.
 
 ## 6. Do's and Don'ts

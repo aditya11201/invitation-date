@@ -14,3 +14,5 @@ dist/
 .impeccable/critique/
 .impeccable/live/
 .worktrees/
+.playwright-mcp/
+.zed/

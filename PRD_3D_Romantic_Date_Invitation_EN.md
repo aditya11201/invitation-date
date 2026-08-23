@@ -1108,7 +1108,7 @@ Primary text:
 
 Secondary text:
 
-**“Can't wait to spend this cute little day with you 🥹✨”**
+**“Now I actually can't wait for this day 😭💗”**
 
 Animation:
 
@@ -1496,7 +1496,7 @@ export const invitationConfig = {
       "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
 
     body: [
-      "I just want to say… I really love spending time with you.",
+      "I don't know if I say this enough, but I really love spending time with you.",
       "Even the smallest things somehow feel more fun, more ridiculous, and more special when I’m with you.",
       "So, I was thinking…",
       "What if we make one little day that belongs only to us?",
@@ -1559,7 +1559,7 @@ export const invitationConfig = {
     gif: "/assets/gifs/surprise.gif",
     title: "Yay, it's a date! 💗",
     subtitle:
-      "Can't wait to spend this cute little day with you 🥹✨"
+      "Now I actually can't wait for this day 😭💗"
   },
 
   whatsapp: {

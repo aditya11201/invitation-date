@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { sound } from '../../utils/sound';
 
 export default function Hero({ config, onScrollDown }) {
-  const greeting = config.hero?.greeting || "Hellooo my beautiful Sassy, my cutieeeeeee 💗";
+  const greeting = config.hero.greeting;
   const [displayedText, setDisplayedText] = useState('');
   const [isTypingDone, setIsTypingDone] = useState(false);
 
@@ -51,7 +51,7 @@ export default function Hero({ config, onScrollDown }) {
         }`}
         style={{ textWrap: 'pretty' }}
       >
-        {config.hero?.subtitle || "I made this little universe just for you..."}
+        {config.hero.subtitle}
       </p>
 
       {/* Keyboard-Accessible Scroll Indicator Button */}
@@ -67,7 +67,7 @@ export default function Hero({ config, onScrollDown }) {
         }}
       >
         <span className="text-xs font-mono tracking-widest text-burgundy-800 uppercase font-bold">
-          {config.hero?.scrollPrompt || "Scroll down to open your letter"}
+          {config.hero.scrollPrompt}
         </span>
         <span className="w-10 h-10 rounded-full bg-burgundy-900 text-amber-100 flex items-center justify-center shadow-md group-hover:bg-burgundy-800 group-hover:translate-y-1 transition">
           <ChevronDown className="w-5 h-5 animate-bounce" />

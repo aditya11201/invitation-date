@@ -37,13 +37,7 @@ export default function InvitationLetter({
     return () => observer.disconnect();
   }, [isAccepted, onQuestionReady]);
 
-  const noProgression = config.noProgression || [
-    "No 🙄",
-    "Are you sure? 🥺",
-    "Seriously? 😭",
-    "Really now? 😤",
-    "Pleaseee 💗"
-  ];
+  const noProgression = config.noProgression;
 
   const handleNoClick = (e) => {
     e.stopPropagation();
@@ -139,7 +133,7 @@ export default function InvitationLetter({
       {/* Section eyebrow */}
       <div className="text-center">
         <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">
-          {config.letter?.tag || "A Note From My Heart 💌"}
+          {config.letter.tag}
         </span>
       </div>
 
@@ -179,10 +173,10 @@ export default function InvitationLetter({
         {/* The Big Question Area */}
         <div ref={questionRef} className="text-center">
           <h3 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">
-            {config.letter?.question || "Would you go on a date with me? 🥺💗"}
+            {config.letter.question}
           </h3>
           <p className="font-serif italic text-sm sm:text-base text-ink/70">
-            {config.letter?.subtext || "Choose what feels right for you 💌"}
+            {config.letter.subtext}
           </p>
 
           {/* YES / NO Action Buttons */}
@@ -210,7 +204,7 @@ export default function InvitationLetter({
                   className={yesPresentation.className}
                 >
                   <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
-                  <span>YES 💗</span>
+                  <span>{config.ui.question.yesButton}</span>
                 </button>
               ) : (
                 <>
@@ -232,7 +226,7 @@ export default function InvitationLetter({
                           yesPhase === 'full' ? 'w-10 h-10 sm:w-14 sm:h-14' : 'w-4 h-4'
                         }`}
                       />
-                      <span>YES 💗</span>
+                      <span>{config.ui.question.yesButton}</span>
                     </button>,
                     document.body,
                   )}
@@ -254,7 +248,7 @@ export default function InvitationLetter({
             /* Accepted Banner */
             <div className="inline-flex items-center gap-2 px-6 py-3 mt-6 bg-burgundy-900 border border-gold-300 text-amber-100 rounded-full font-bold text-sm shadow-lg animate-heartPop">
               <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
-              <span>SHE SAID YES! 🎉💗</span>
+              <span>{config.ui.question.acceptedBanner}</span>
             </div>
           )}
         </div>

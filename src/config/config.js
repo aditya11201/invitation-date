@@ -10,7 +10,7 @@ export const invitationConfig = {
   hero: {
     badge: "A Special Delivery Just For You ✨",
     greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
-    subtitle: "I made this little universe just for you...",
+    subtitle: "I made all of this just for you hehe...",
     scrollPrompt: "Scroll down to open your letter"
   },
 
@@ -26,22 +26,26 @@ export const invitationConfig = {
       { start: 31, key: "writing", message: "Writing something just for {{recipientName}}..." },
       { start: 66, key: "sealing", message: "Adding a touch of golden wax..." },
       { start: 91, key: "ready", message: "Your invitation is ready!" }
-    ]
+    ],
+    loadingCrafting: "Getting your letter ready...",
+    loadingFoil: "Adding the gold trim...",
+    loadingReady: "Your invitation is ready 💌",
+    progressSealing: "Sealing a surprise for"
   },
 
   letter: {
-    tag: "A Note From My Heart 💌",
+    tag: "Okay, I Wanna Tell You Something 💌",
     greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
     body: [
-      "I just want to say… I really love spending time with you.",
-      "Even the smallest things somehow feel more fun, more ridiculous, and more special when I’m with you.",
+      "I don't know if I say this enough, but I really love spending time with you.",
+      "I swear even doing random stupid stuff feels fun when it's with you wkwk.",
       "So, I was thinking…",
-      "What if we make one little day that belongs only to us?",
-      "We can go out, eat something delicious, laugh about random things, take photos, and make another cute memory together.",
+      "So... can I steal you for a day?",
+      "We eat, jalan-jalan, take random photos, bully each other a little bit, and just have fun. Deal?",
       "I’ve already prepared everything here. There’s just one thing left…"
     ],
     question: "Would you go on a date with me? 🥺💗",
-    subtext: "Choose what feels right for you 💌"
+    subtext: "Soooo... what do you say?"
   },
 
   noProgression: [
@@ -64,7 +68,15 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/aquarium-date.webp",
       },
-      highlights: ["Manta Rays", "Glass Tunnel Walk", "Holding Hands"]
+      highlights: ["Manta Rays", "Glass Tunnel Walk", "Holding Hands"],
+      book: {
+        tag: "Underwater Realm",
+        spine: "Aquarium · Vol. 1",
+        chapter: "Chapter 01 · Underwater Realm",
+        quote: '"The fish are cute. Youre still cuter tho."',
+        badge: "🐟",
+        emoji: "🐠"
+      }
     },
     {
       id: "cinema",
@@ -77,7 +89,15 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/cinema-date.webp",
       },
-      highlights: ["Caramel Popcorn", "Cozy Premiere Seats", "Post-Movie Chill"]
+      highlights: ["Caramel Popcorn", "Cozy Premiere Seats", "Post-Movie Chill"],
+      book: {
+        tag: "Cozy Screening",
+        spine: "Cinema · Vol. 2",
+        chapter: "Chapter 02 · Cozy Screening",
+        quote: '"The best scene is always the one where you laugh."',
+        badge: "🎬",
+        emoji: "🍿"
+      }
     },
     {
       id: "museum",
@@ -90,7 +110,15 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/museum-date.webp",
       },
-      highlights: ["Art Exhibits", "Quiet Walk", "Aesthetic Photos"]
+      highlights: ["Art Exhibits", "Quiet Walk", "Aesthetic Photos"],
+      book: {
+        tag: "Art & History",
+        spine: "Museum · Vol. 3",
+        chapter: "Chapter 03 · Art & History",
+        quote: '"Looking at art is great, but walking beside you is the masterpiece."',
+        badge: "🏛️",
+        emoji: "🎨"
+      }
     }
   ],
 
@@ -98,13 +126,13 @@ export const invitationConfig = {
     year: 2026,
     minDateMode: "today",
     maxDate: "2026-12-31",
-    subtitle: "Pick any day that works best for your schedule in 2026"
+    subtitle: "Pick a day when I can steal you for the whole day 👀💗"
   },
 
   surprise: {
     gif: "/assets/gifs/surprise.gif",
     title: "Yay, it's a date! 💗",
-    subtitle: "Can't wait to spend this cute little day with you 🥹✨",
+    subtitle: "Now I actually can't wait for this day 😭💗",
     caption: "Official Date Confirmation Unlocked!"
   },
 
@@ -126,5 +154,78 @@ See you soon 🫶🏻✨`
   audio: {
     backgroundMusic: "/assets/audio/music.mp3",
     enableSynthesizerFallback: true
+  },
+
+  ui: {
+    question: {
+      yesButton: "YES 💗",
+      acceptedBanner: "SHE SAID YES! 🎉💗"
+    },
+
+    celebration: {
+      ribbon: "She said YES! Best decision ever 🎉",
+      heading: "Now let's plan our special day together! ✨",
+      nextStep: "Next step: Choose where we're going...",
+      cta: "Pick Our Destination"
+    },
+
+    destinationPicker: {
+      eyebrow: "STEP 01 • THE DESTINATION",
+      heading: "Where should we go?",
+      headingHeart: "💗",
+      hint: "Swipe or tap the arrows to explore our options",
+      confirmedHint: "Destination confirmed!",
+      chooseButton: "Yep, I Want This One 💗",
+      lockedPrefix: "Okay, we're going to:"
+    },
+
+    calendarSection: {
+      eyebrow: "STEP 02 • THE DATE",
+      heading: "When are you free? 💗",
+      confirmedHint: "Date confirmed!",
+      chooseButton: "This One 💗",
+      lockedPrefix: "Date Locked:",
+      destinationLabel: "Destination:",
+      months: [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ],
+      days: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    },
+
+    surpriseUi: {
+      badge: "OKAY IT'S OFFICIAL 💌",
+      claimButton: "Gimme Our Ticket 🎟️"
+    },
+
+    ticket: {
+      handNote: "for the record",
+      eyebrow: "FOR US 💗",
+      heading: "Our Date Ticket 🎟️",
+      subline: "Keep this. No backing out now 😌💗",
+      stampConfirmed: "Confirmed",
+      labelAdmit: "Admit Two",
+      cardTitle: "Romantic Date Pass",
+      labelDateWith: "Date With",
+      labelFrom: "From",
+      labelDestination: "Destination",
+      labelSchedule: "Date & Schedule",
+      noteAllDay: "You're stuck with me all day 💗",
+      footerFor: "For",
+      footerOnly: "Only",
+      footerSignOff: "see you there",
+      btnWhatsapp: "Send to WhatsApp",
+      btnSave: "Save Ticket",
+      btnSavePng: "Save as Image (PNG)",
+      btnSavePdf: "Export as PDF Document",
+      btnCalendar: "Add to Calendar",
+      btnGoogleCal: "Google Calendar",
+      btnIcs: "Apple / Outlook (.ICS)",
+      btnReplay: "Wanna See All This Again?",
+      exporting: "Exporting…",
+      recommended: "Recommended",
+      saveError: "Couldn't save the ticket.",
+      retry: "Try again"
+    }
   }
 };

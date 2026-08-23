@@ -22,9 +22,61 @@ import {
   shouldUpdatePointerHover,
 } from './envelopeScene.js';
 
-function drawCoverCanvas(context, canvas, { recipientName, senderName, year, headline, subtext }) {
-  const safeRecipient = recipientName || 'you';
-  const safeSender = senderName || 'Your Secret Admirer';
+function getCoverTextLines({ recipientName, senderName, headline, subtext }) {
+  return [
+    {
+      text: `FROM: ${senderName || 'Your Secret Admirer'}`,
+      segments: Array.from(`FROM: ${senderName || 'Your Secret Admirer'}`),
+      x: 100,
+      y: 140,
+      font: "italic 44px 'Cormorant Garamond', Georgia, serif",
+      color: '#fce7f3',
+    },
+    {
+      text: `TO: ${recipientName || 'you'} ✨`,
+      segments: Array.from(`TO: ${recipientName || 'you'} ✨`),
+      x: 100,
+      y: 260,
+      font: "bold 64px 'Cormorant Garamond', Georgia, serif",
+      color: '#fce7f3',
+    },
+    {
+      text: headline || 'A Sealed Secret',
+      segments: Array.from(headline || 'A Sealed Secret'),
+      x: 100,
+      y: 520,
+      font: "bold 68px 'Cormorant Garamond', Georgia, serif",
+      color: '#ffffff',
+    },
+    {
+      text: subtext || 'is waiting for you...',
+      segments: Array.from(subtext || 'is waiting for you...'),
+      x: 100,
+      y: 620,
+      font: "italic 64px 'Cormorant Garamond', Georgia, serif",
+      color: '#fce7f3',
+    },
+  ];
+}
+
+/** Everything on the cover EXCEPT the four handwritten text lines. */
+// roundRect with a manual arcTo fallback for older browsers.
+function traceRoundRect(context, x, y, width, height, radius) {
+  if (typeof context.roundRect === 'function') {
+    context.roundRect(x, y, width, height, radius);
+    return;
+  }
+  const r = Math.min(radius, width / 2, height / 2);
+  context.moveTo(x + r, y);
+  context.arcTo(x + width, y, x + width, y + height, r);
+  context.arcTo(x + width, y + height, x, y + height, r);
+  context.arcTo(x, y + height, x, y, r);
+  context.arcTo(x, y, x + width, y, r);
+  context.closePath();
+}
+
+function drawCoverStatic(context, canvas, content) {
+  const { year } = content;
 
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = '#ec4899';
@@ -46,47 +98,194 @@ function drawCoverCanvas(context, canvas, { recipientName, senderName, year, hea
   context.textAlign = 'center';
   context.fillText('VIP PASS', canvas.width - 180, 180);
   context.fillText(String(year || 2026), canvas.width - 180, 240);
-
-  // Addresses & Main Headline
-  context.fillStyle = '#fce7f3';
-  context.textAlign = 'left';
-  context.font = "italic 44px 'Cormorant Garamond', Georgia, serif";
-  context.fillText(`FROM: ${safeSender}`, 100, 140);
-  context.font = "bold 64px 'Cormorant Garamond', Georgia, serif";
-  context.fillText(`TO: ${safeRecipient} ✨`, 100, 260);
-
-  context.fillStyle = '#ffffff';
-  context.font = "bold 68px 'Cormorant Garamond', Georgia, serif";
-  context.fillText(headline || 'A Sealed Secret', 100, 520);
-  context.fillStyle = '#fce7f3';
-  context.font = "italic 64px 'Cormorant Garamond', Georgia, serif";
-  context.fillText(subtext || 'is waiting for you...', 100, 620);
 }
 
-function createCoverTexture({ recipientName, senderName, year, headline, subtext, onUpdate }) {
+/** Draws `charCount` characters of a line, returns the pen-tip position. */
+function drawCoverTextLine(context, line, charCount) {
+  context.font = line.font;
+  context.fillStyle = line.color;
+  context.textAlign = 'left';
+  const partial = line.segments.slice(0, charCount).join('');
+  context.fillText(partial, line.x, line.y);
+  return { x: line.x + context.measureText(partial).width + 6, y: line.y };
+}
+
+function drawCoverCanvas(context, canvas, content) {
+  drawCoverStatic(context, canvas, content);
+  getCoverTextLines(content).forEach((line) => {
+    drawCoverTextLine(context, line, line.segments.length);
+  });
+}
+
+/**
+ * Flat stylized hand + pencil at the pen tip. Pencil tip touches (x, y),
+ * barrel leaning at −50°, small rounded mitt gripping it.
+ */
+function drawWritingHand(context, x, y) {
+  context.save();
+  context.translate(x, y);
+  context.rotate(-50 * (Math.PI / 180));
+
+  // Graphite tip.
+  context.fillStyle = '#3f3a36';
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.lineTo(7, -16);
+  context.lineTo(-7, -16);
+  context.closePath();
+  context.fill();
+
+  // Gold barrel.
+  context.fillStyle = '#D4A373';
+  context.fillRect(-7, -112, 14, 96);
+
+  // Ferrule + eraser stripe.
+  context.fillStyle = '#b76e79';
+  context.fillRect(-7, -116, 14, 5);
+  context.fillStyle = '#e98980';
+  context.fillRect(-7, -126, 14, 10);
+
+  // Soft rounded mitt gripping the barrel.
+  context.fillStyle = 'rgba(252, 228, 232, 0.95)';
+  context.strokeStyle = 'rgba(122, 32, 48, 0.35)';
+  context.lineWidth = 3;
+  context.beginPath();
+  traceRoundRect(context, -15, -92, 32, 54, 16);
+  context.fill();
+  context.stroke();
+  context.beginPath();
+  traceRoundRect(context, -1, -46, 17, 28, 9);
+  context.fill();
+  context.stroke();
+
+  context.restore();
+}
+
+const COVER_WRITING_MS = 2500;
+
+/**
+ * Reveals the four cover text lines character-by-character over ~2.5s with
+ * the hand following the pen tip. Runs its own rAF loop for the writing
+ * window only, then stops. Returns a cancel function.
+ */
+function startCoverWriting({ context, canvas, content, texture, onComplete }) {
+  const lines = getCoverTextLines(content);
+  const totalChars = lines.reduce((sum, line) => sum + line.segments.length, 0) || 1;
+  let cancelled = false;
+  let frameId = 0;
+  let startTimestamp = 0;
+  let lastDrawnChars = -1;
+
+  const renderProgress = (charCount) => {
+    drawCoverStatic(context, canvas, content);
+    let remaining = charCount;
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+      if (remaining >= line.segments.length) {
+        drawCoverTextLine(context, line, line.segments.length);
+        remaining -= line.segments.length;
+      } else {
+        const pen = drawCoverTextLine(context, line, remaining);
+        drawWritingHand(context, pen.x, pen.y);
+        break;
+      }
+    }
+
+    texture.needsUpdate = true;
+  };
+
+  const step = (timestamp) => {
+    if (cancelled) {
+      return;
+    }
+
+    if (!startTimestamp) {
+      startTimestamp = timestamp;
+    }
+
+    const progress = Math.min(1, (timestamp - startTimestamp) / COVER_WRITING_MS);
+    const charCount = Math.floor(progress * totalChars);
+
+    if (charCount !== lastDrawnChars) {
+      lastDrawnChars = charCount;
+      renderProgress(charCount);
+    }
+
+    if (progress >= 1) {
+      drawCoverCanvas(context, canvas, content); // final frame without the hand
+      texture.needsUpdate = true;
+      onComplete?.();
+      return;
+    }
+
+    frameId = requestAnimationFrame(step);
+  };
+
+  frameId = requestAnimationFrame(step);
+
+  return () => {
+    cancelled = true;
+    if (frameId) {
+      cancelAnimationFrame(frameId);
+    }
+  };
+}
+
+function createCoverTexture({
+  recipientName,
+  senderName,
+  year,
+  headline,
+  subtext,
+  skipWriting,
+  onWriteComplete,
+}) {
   const canvas = document.createElement('canvas');
   canvas.width = 1440;
   canvas.height = 960;
   const context = canvas.getContext('2d');
   const content = { recipientName, senderName, year, headline, subtext };
 
-  drawCoverCanvas(context, canvas, content);
+  if (skipWriting) {
+    drawCoverCanvas(context, canvas, content);
+  } else {
+    drawCoverStatic(context, canvas, content);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
-  let disposed = false;
 
+  let disposed = false;
+  let writingStarted = false;
+  let cancelWriting = () => {};
+
+  const startWriting = () => {
+    if (writingStarted || disposed) {
+      return;
+    }
+
+    writingStarted = true;
+
+    if (skipWriting) {
+      onWriteComplete?.();
+      return;
+    }
+
+    cancelWriting = startCoverWriting({ context, canvas, content, texture, onComplete: onWriteComplete });
+  };
+
+  // Absorbs the old fonts.ready redraw: writing only starts once font
+  // metrics are final, so every written frame doubles as the repaint.
   if (document.fonts?.ready) {
     document.fonts.ready.then(() => {
-      if (disposed) {
-        return;
+      if (!disposed) {
+        startWriting();
       }
-
-      drawCoverCanvas(context, canvas, content);
-      texture.needsUpdate = true;
-      onUpdate?.();
     });
+  } else {
+    startWriting();
   }
 
   return {
@@ -97,6 +296,7 @@ function createCoverTexture({ recipientName, senderName, year, headline, subtext
       }
 
       disposed = true;
+      cancelWriting();
       texture.dispose();
     },
   };
@@ -139,7 +339,7 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
 
   context.save();
   context.beginPath();
-  context.roundRect(0, 0, width, height, radius);
+    traceRoundRect(context, 0, 0, width, height, radius);
   context.fillStyle = '#FDFBF7';
   context.fill();
 
@@ -165,7 +365,7 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
   // Subtle warm gold hairline (no drawn frame).
   context.save();
   context.beginPath();
-  context.roundRect(3, 3, width - 6, height - 6, radius);
+    traceRoundRect(context, 3, 3, width - 6, height - 6, radius);
   context.strokeStyle = 'rgba(212, 163, 115, 0.35)';
   context.lineWidth = 2;
   context.stroke();
@@ -416,10 +616,18 @@ export default function PreloaderCanvas({
       year,
       headline,
       subtext,
-      onUpdate: () => {
-        if (reducedMotionRef.current && sceneRef.current) {
-          sceneRef.current.renderer.render(sceneRef.current.scene, sceneRef.current.camera);
+      skipWriting: reducedMotionRef.current,
+      onWriteComplete: () => {
+        // Writing finished → release a seal-ready that was parked by the
+        // flip completion (or just record done-ness for the usual order).
+        const currentState = sceneRef.current;
+        if (!currentState) {
+          return;
         }
+        currentState.coverWriteDone = true;
+        const firePendingSealReady = currentState.pendingSealFire;
+        currentState.pendingSealFire = null;
+        firePendingSealReady?.();
       },
     });
     const letterTexture = createLetterTexture({
@@ -516,6 +724,8 @@ export default function PreloaderCanvas({
       flipComplete: lifecycle.flipComplete,
       didOpen: lifecycle.openStarted || lifecycle.openComplete,
       openComplete: lifecycle.openComplete,
+      coverWriteDone: false,
+      pendingSealFire: null,
       resetDrag,
     };
     sceneRef.current = state;
@@ -868,16 +1078,27 @@ export default function PreloaderCanvas({
         state.flipComplete = true;
         state.drag.yaw = 0;
         state.drag.pitch = 0;
-        callbacksRef.current.onSealReady();
 
-        gsap.to(state.envelope.seal.scale, {
-          x: 1.25,
-          y: 1.25,
-          z: 1.25,
-          duration: 0.6,
-          yoyo: true,
-          repeat: -1,
-        });
+        const fireSealReady = () => {
+          callbacksRef.current.onSealReady();
+
+          gsap.to(state.envelope.seal.scale, {
+            x: 1.25,
+            y: 1.25,
+            z: 1.25,
+            duration: 0.6,
+            yoyo: true,
+            repeat: -1,
+          });
+        };
+
+        // The seal arms only after the handwriting on the cover finished.
+        // If writing is still running, park the signal until it completes.
+        if (state.coverWriteDone) {
+          fireSealReady();
+        } else {
+          state.pendingSealFire = fireSealReady;
+        }
       },
     });
 

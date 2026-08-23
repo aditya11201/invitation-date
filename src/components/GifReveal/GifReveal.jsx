@@ -47,15 +47,15 @@ export default function GifReveal({
       {/* Ribbon Tag */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-burgundy-100/80 border border-burgundy-200 text-burgundy-900 text-[11px] font-bold tracking-wider uppercase mb-2 animate-floatSlow">
         <Sparkles className="w-3.5 h-3.5 text-burgundy-600 animate-spin" style={{ animationDuration: '5s' }} />
-        <span>Official Date Confirmed 💌</span>
+        <span>{config.ui.surpriseUi.badge}</span>
       </div>
 
       {/* Primary & Secondary Copy */}
       <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900 mb-1" style={{ textWrap: 'balance' }}>
-        {config.surprise?.title || "Yay, it's a date! 💗"}
+        {config.surprise.title}
       </h2>
       <p className="font-handwritingPaper text-2xl sm:text-3xl text-burgundy-600 font-bold max-w-lg mx-auto mb-6" style={{ textWrap: 'pretty' }}>
-        {config.surprise?.subtitle || "Can't wait to spend this cute little day with you 🥹✨"}
+        {config.surprise.subtitle}
       </p>
 
       {/* Polaroid Surprise Card with Parallax Tilt */}
@@ -94,7 +94,7 @@ export default function GifReveal({
           className="group inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
         >
           <Ticket className="w-4 h-4 text-amber-100 group-hover:rotate-12 transition-transform" />
-          <span>Claim Our Date Ticket 🎟️</span>
+          <span>{config.ui.surpriseUi.claimButton}</span>
           <ArrowRight className="w-4 h-4 text-amber-100 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>

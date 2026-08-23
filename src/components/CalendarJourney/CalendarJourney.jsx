@@ -3,13 +3,6 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check, Heart } fro
 import { sound } from '../../utils/sound';
 import { formatLocalDateString, parseLocalDate, isValidLocalDate } from '../../utils/date';
 
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-const DAYS_OF_WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
 export default function CalendarJourney({
   config,
   selectedDate,
@@ -18,6 +11,9 @@ export default function CalendarJourney({
   selectedPlace,
   isLocked = false,
 }) {
+  const ui = config.ui.calendarSection;
+  const MONTH_NAMES = ui.months;
+  const DAYS_OF_WEEK = ui.days;
   const targetYear = config.calendar?.year || 2026;
   const now = new Date();
   
@@ -114,10 +110,10 @@ export default function CalendarJourney({
     >
       {/* Section Header */}
       <div className="text-center space-y-2 relative z-10">
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">STEP 02 • THE DATE</span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">When are you free? 💗</h2>
+        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">{ui.eyebrow}</span>
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">{ui.heading}</h2>
         <p className="text-xs sm:text-sm text-ink/70">
-          {isLocked ? 'Date confirmed!' : (config.calendar?.subtitle || `Choose any date in ${targetYear}`)}
+          {isLocked ? ui.confirmedHint : config.calendar.subtitle}
         </p>
       </div>
 
@@ -229,7 +225,7 @@ export default function CalendarJourney({
             {/* Destination + Date Combined Summary */}
             {selectedPlace && (
               <p className="text-xs font-semibold text-ink/50 mt-2">
-                Destination: <span className="text-ink">{selectedPlace}</span>
+                {ui.destinationLabel} <span className="text-ink">{selectedPlace}</span>
               </p>
             )}
 
@@ -237,7 +233,7 @@ export default function CalendarJourney({
             {isLocked ? (
               <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-bold text-base shadow-sm">
                 <Check className="w-5 h-5 text-burgundy-600" />
-                <span>Date Locked: {formattedTempDate} 💗</span>
+                <span>{`${ui.lockedPrefix} ${formattedTempDate} 💗`}</span>
               </div>
             ) : (
               <button
@@ -245,7 +241,7 @@ export default function CalendarJourney({
                 className="group mt-4 inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
               >
                 <Heart className="w-4 h-4 fill-rose-400 text-rose-400 group-hover:scale-125 transition-transform" />
-                <span>This date 💗</span>
+                <span>{ui.chooseButton}</span>
               </button>
             )}
           </div>
