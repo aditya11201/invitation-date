@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Heart, Paperclip } from 'lucide-react';
 import { sound } from '../../utils/sound';
 
@@ -198,21 +199,45 @@ export default function InvitationLetter({
                 </span>
               )}
 
-              {/* YES Button */}
-              <button
-                ref={yesButtonRef}
-                type="button"
-                onClick={handleYesClick}
-                className={yesPresentation.className}
-                style={yesPresentation.style}
-              >
-                <Heart
-                  className={`fill-rose-400 text-rose-400 transition-all duration-700 ${
-                    yesPhase === 'full' ? 'w-10 h-10 sm:w-14 sm:h-14' : 'w-4 h-4'
-                  }`}
-                />
-                <span>YES 💗</span>
-              </button>
+              {/* YES Button — portals to <body> once it breaks out of the paper,
+                  because the letter card's backdrop-filter makes it a containing
+                  block that would otherwise clip and skew the fixed positioning. */}
+              {yesPhase === 'inline' ? (
+                <button
+                  ref={yesButtonRef}
+                  type="button"
+                  onClick={handleYesClick}
+                  className={yesPresentation.className}
+                >
+                  <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
+                  <span>YES 💗</span>
+                </button>
+              ) : (
+                <>
+                  {/* Placeholder keeps the NO button from shifting while Yes is portaled */}
+                  <span
+                    aria-hidden="true"
+                    style={{ width: yesRect.width, height: yesRect.height }}
+                    className="inline-block"
+                  />
+                  {createPortal(
+                    <button
+                      type="button"
+                      onClick={handleYesClick}
+                      className={yesPresentation.className}
+                      style={yesPresentation.style}
+                    >
+                      <Heart
+                        className={`fill-rose-400 text-rose-400 transition-all duration-700 ${
+                          yesPhase === 'full' ? 'w-10 h-10 sm:w-14 sm:h-14' : 'w-4 h-4'
+                        }`}
+                      />
+                      <span>YES 💗</span>
+                    </button>,
+                    document.body,
+                  )}
+                </>
+              )}
 
               {/* NO Button (5-click playful gimmick) */}
               {noClickCount < 5 && (

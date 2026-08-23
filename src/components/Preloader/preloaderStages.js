@@ -27,7 +27,7 @@ export const PRELOADER_COPY = Object.freeze({
   title: 'Preparing something special for you... 💗',
   cta: 'Open My Invitation 💌',
   loading: Object.freeze({
-    crafting: 'Crafting your envelope...',
+    crafting: 'Getting your letter ready...',
     foil: 'Adding the gold trim...',
     ready: 'Your invitation is ready 💌',
   }),

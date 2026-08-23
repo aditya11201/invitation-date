@@ -16,7 +16,7 @@ export const invitationConfig = {
 
   preloader: {
     badge: "Express Delivery • For {{recipientName}}",
-    title: "A Sealed Secret for {{recipientName}}",
+    title: "Something for You 💌",
     coverHeadline: "A Sealed Secret",
     coverSubtext: "is waiting for you...",
     sealHint: "Tap the gold seal on the envelope to open",
