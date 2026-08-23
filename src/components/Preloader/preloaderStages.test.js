@@ -52,8 +52,8 @@ test('formatPreloaderCopy personalizes tokens without leaking undefined', () => 
 });
 
 test('uses the crafting message before the foil stage', () => {
-  assert.equal(getLoadingMessage(0, 'Sassy'), 'Crafting your envelope...');
-  assert.equal(getLoadingMessage(44, 'Sassy'), 'Crafting your envelope...');
+  assert.equal(getLoadingMessage(0, 'Sassy'), 'Getting your letter ready...');
+  assert.equal(getLoadingMessage(44, 'Sassy'), 'Getting your letter ready...');
 });
 
 test('uses the gold trim message during the middle stage', () => {
@@ -69,7 +69,7 @@ test('personalizes the sealing message for the recipient', () => {
 test('uses the ready message at 100 percent and clamps invalid ranges', () => {
   assert.equal(getLoadingMessage(100, 'Sassy'), 'Your invitation is ready 💌');
   assert.equal(getLoadingMessage(140, 'Sassy'), 'Your invitation is ready 💌');
-  assert.equal(getLoadingMessage(-20, 'Sassy'), 'Crafting your envelope...');
+  assert.equal(getLoadingMessage(-20, 'Sassy'), 'Getting your letter ready...');
 });
 
 test('resolveFallbackSealLabel returns formatted openLabel, personalized fallback, or generic default', () => {
