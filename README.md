@@ -157,6 +157,17 @@ public/
 
 ## 🌐 Deploy to GitHub Pages
 
-1. Ensure `base: './'` is set in `vite.config.js` (already pre-configured).
-2. Build the project: `npm run build`.
-3. Deploy the `dist/` directory using GitHub Actions or your preferred static site hosting (Vercel, Netlify, Cloudflare Pages).
+Deployment is automatic via GitHub Actions:
+
+- **Trigger:** push / merge to `main` (or manual via `workflow_dispatch`)
+- **Workflow:** `.github/workflows/deploy.yml`
+- **Pipeline:** `npm ci` → `npm test` → `npm run build` → deploy `dist/` to GitHub Pages (official `actions/deploy-pages`)
+- **Production URL:** `https://aditya11201.github.io/invitation-date/`
+
+### One-time repository setting (GitHub UI)
+
+```
+Repository → Settings → Pages → Source → GitHub Actions
+```
+
+Asset paths are subpath-safe: `vite.config.js` uses `base: './'` and all configured asset paths resolve through `resolveAssetUrl()` (`src/utils/assets.js`).
