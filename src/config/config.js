@@ -75,7 +75,13 @@ export const invitationConfig = {
         chapter: "Chapter 01 · Underwater Realm",
         quote: '"The fish are cute. Youre still cuter tho."',
         badge: "🐟",
-        emoji: "🐠"
+        emoji: "🐠",
+        photos: [
+          { src: "/assets/places/aquarium-date.webp", caption: "the tunnel!" },
+          {},
+          {},
+          { caption: "us, later 📷" }
+        ]
       }
     },
     {
@@ -96,7 +102,13 @@ export const invitationConfig = {
         chapter: "Chapter 02 · Cozy Screening",
         quote: '"The best scene is always the one where you laugh."',
         badge: "🎬",
-        emoji: "🍿"
+        emoji: "🍿",
+        photos: [
+          { src: "/assets/places/cinema-date.webp", caption: "row F, seat us" },
+          {},
+          { caption: "popcorn tax" },
+          {}
+        ]
       }
     },
     {
@@ -117,7 +129,13 @@ export const invitationConfig = {
         chapter: "Chapter 03 · Art & History",
         quote: '"Looking at art is great, but walking beside you is the masterpiece."',
         badge: "🏛️",
-        emoji: "🎨"
+        emoji: "🎨",
+        photos: [
+          { src: "/assets/places/museum-date.webp", caption: "quiet gallery" },
+          {},
+          {},
+          { caption: "art & us" }
+        ]
       }
     }
   ],
