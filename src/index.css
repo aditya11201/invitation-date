@@ -379,10 +379,10 @@
 }
 
 /* Slot positions — desktop grid (page inner ≈ 258×400) */
-.scrapbook-photo--portrait { top: 30px; right: 10px; width: 64px; height: 88px; }
+.scrapbook-photo--portrait { top: 185px; right: 10px; width: 64px; height: 88px; }
 .scrapbook-photo--square { bottom: 74px; left: 46px; width: 70px; height: 70px; }
 .scrapbook-photo--landscape { bottom: 52px; right: 12px; width: 96px; height: 64px; }
-.scrapbook-photo--mini { top: 24px; left: 24px; width: 48px; height: 48px; }
+.scrapbook-photo--mini { top: 195px; left: 48px; width: 48px; height: 48px; }
 
 /* ============ COVER (yang membuka) ============ */
 .book-cover,
@@ -613,10 +613,10 @@
     padding: 4px 10px;
     font-size: 0.52rem;
   }
-  .scrapbook-photo--portrait { top: 24px; right: 8px; width: 56px; height: 76px; }
+  .scrapbook-photo--portrait { top: 150px; right: 8px; width: 56px; height: 76px; }
   .scrapbook-photo--square { bottom: 66px; left: 40px; width: 60px; height: 60px; }
   .scrapbook-photo--landscape { bottom: 46px; right: 10px; width: 84px; height: 56px; }
-  .scrapbook-photo--mini { top: 18px; left: 20px; width: 42px; height: 42px; }
+  .scrapbook-photo--mini { top: 155px; left: 36px; width: 42px; height: 42px; }
 }
 
 @media (max-height: 680px) and (min-width: 640px) {
