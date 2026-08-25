@@ -104,7 +104,7 @@ const BookCard = forwardRef(function BookCard(
         </div>
 
         {/* Scrapbook photo layer — decorative, non-interactive */}
-        <div className="book-photos destination-book__photos">
+        <div className="book-photos destination-book__photos" aria-hidden="true">
           {resolvePhotoSlots(place).map((slot, i) => (
             <ScrapbookPhoto key={`${place.id}-photo-${i}`} slot={slot} />
           ))}
