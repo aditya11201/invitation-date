@@ -1,5 +1,7 @@
 import React, { forwardRef } from 'react';
 import { gsap } from 'gsap';
+import ScrapbookPhoto from './ScrapbookPhoto';
+import { resolvePhotoSlots } from './photos';
 
 // Color themes only — book copy (tag/spine/chapter/quote/badge/emoji) lives on
 // place.book in src/config/config.js.
@@ -99,6 +101,13 @@ const BookCard = forwardRef(function BookCard(
           <div className="page-num destination-book__page-number">
             — {String(index + 1).padStart(2, '0')} —
           </div>
+        </div>
+
+        {/* Scrapbook photo layer — decorative, non-interactive */}
+        <div className="book-photos destination-book__photos" aria-hidden="true">
+          {resolvePhotoSlots(place).map((slot, i) => (
+            <ScrapbookPhoto key={`${place.id}-photo-${i}`} slot={slot} />
+          ))}
         </div>
       </div>
 

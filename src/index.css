@@ -298,6 +298,92 @@
   color: #a08d72;
 }
 
+/* ============ SCRAPBOOK PHOTOS (tempelan polaroid) ============ */
+.book-photos,
+.destination-book__photos {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scrapbook-photo,
+.destination-book__photo {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 4px 12px;
+  background: #fffdf8;
+  border-radius: 1px;
+  box-shadow: 0 3px 8px rgba(60, 40, 20, 0.22);
+  transform: rotate(var(--tilt, 0deg));
+}
+
+.scrapbook-photo img,
+.destination-book__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f3ead9;
+}
+
+.scrapbook-photo__tape,
+.destination-book__photo-tape {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 58%;
+  height: 14px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(240, 230, 205, 0.45));
+  border-left: 1px dashed rgba(120, 100, 80, 0.25);
+  border-right: 1px dashed rgba(120, 100, 80, 0.25);
+  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.15);
+}
+
+.scrapbook-photo__ph,
+.destination-book__photo-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1rem;
+  opacity: 0.85;
+  background: #f6efe0 repeating-linear-gradient(45deg, transparent 0 6px, rgba(160, 140, 110, 0.07) 6px 7px);
+  border: 1px dashed #cbb89a;
+}
+
+.scrapbook-photo__caption,
+.destination-book__photo-caption {
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 0.5rem;
+  line-height: 1.2;
+  color: #8a7a66;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scrapbook-photo__caption:empty::after,
+.destination-book__photo-caption:empty::after {
+  content: '';
+  display: block;
+  width: 70%;
+  margin: 2px auto 0;
+  border-bottom: 1px solid #cbb89a;
+}
+
+/* Slot positions — desktop grid (page inner ≈ 258×400) */
+.scrapbook-photo--portrait { top: 185px; right: 10px; width: 64px; height: 88px; }
+.scrapbook-photo--square { bottom: 74px; left: 46px; width: 70px; height: 70px; }
+.scrapbook-photo--landscape { bottom: 52px; right: 12px; width: 96px; height: 64px; }
+.scrapbook-photo--mini { top: 195px; left: 48px; width: 48px; height: 48px; }
+
 /* ============ COVER (yang membuka) ============ */
 .book-cover,
 .destination-book__cover {
@@ -527,6 +613,10 @@
     padding: 4px 10px;
     font-size: 0.52rem;
   }
+  .scrapbook-photo--portrait { top: 150px; right: 8px; width: 56px; height: 76px; }
+  .scrapbook-photo--square { bottom: 66px; left: 40px; width: 60px; height: 60px; }
+  .scrapbook-photo--landscape { bottom: 46px; right: 10px; width: 84px; height: 56px; }
+  .scrapbook-photo--mini { top: 155px; left: 36px; width: 42px; height: 42px; }
 }
 
 @media (max-height: 680px) and (min-width: 640px) {
