@@ -235,8 +235,11 @@ export default function LocationPicker({
 
       {/* Header */}
       <header className="relative z-10 flex flex-col items-center text-center max-w-xl mx-auto px-4">
+        <span className="font-handwritingPaper text-sm sm:text-base font-semibold text-burgundy-600">
+          {ui.eyebrow}
+        </span>
         <h2
-          className="mb-1.5 font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900"
+          className="mb-1.5 mt-2 font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900"
           style={{ textWrap: 'balance' }}
         >
           {ui.heading} <span className="inline-block animate-bounce">{ui.headingHeart}</span>

@@ -178,27 +178,12 @@
     color: #7c2d3a !important;
   }
 
-  .ticket-data-label {
+  .paper-kicker {
+    color: #7c2d3a;
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 0.76rem;
     font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-transform: none;
-  }
-
-  .ticket-data-small {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 0.7rem;
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-transform: none;
-  }
-
-  .ticket-date-value {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-variant-numeric: tabular-nums;
+    letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
+    text-transform: uppercase;
   }
 
   .letter-face {
@@ -236,26 +221,77 @@
     pointer-events: none;
   }
 
-  .letter-stamp-anchor {
+  .letter-postal-marks {
     position: absolute;
     z-index: 4;
     top: 18px;
     right: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(124, 45, 58, 0.62);
     pointer-events: none;
   }
 
+  .letter-postmark {
+    width: 142px;
+    height: 78px;
+    overflow: visible;
+  }
+
+  .letter-postmark text {
+    fill: currentColor;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.055em;
+  }
+
+  .letter-postmark .letter-postmark-center {
+    font-size: 8px;
+    letter-spacing: 0.11em;
+  }
+
   .letter-stamp {
-    display: block;
+    display: flex;
     width: 66px;
     height: 82px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 1px dashed rgba(185, 128, 63, 0.9);
+    background: rgba(196, 112, 127, 0.08);
+    box-shadow: inset 0 0 0 4px rgba(124, 45, 58, 0.055);
+    color: #7c2d3a;
     transform: rotate(2deg);
   }
 
+  .letter-stamp-label {
+    color: #8a7a6d;
+    font: 700 7px / 1 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.075em;
+    white-space: nowrap;
+  }
+
+  .letter-stamp svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .letter-salutation {
+    margin: 0 0 28px;
+    color: #5f2430;
+    font: 700 clamp(1.75rem, 4vw, 2.3rem) / 1.1 'Caveat', cursive;
+    text-align: center;
+    text-wrap: balance;
+  }
+
   .letter-copy {
-    --copy-indent: max(0px, calc(var(--paper-margin-line) - var(--paper-content-pad) + 20px));
+    --copy-indent: max(0px, calc(var(--paper-margin-line) - var(--paper-content-pad)));
     width: min(66ch, calc(100% - var(--copy-indent)));
     margin-left: var(--copy-indent);
-    margin-top: 20px;
     padding-bottom: 56px;
     color: #4a4038;
     font: 600 clamp(1.2rem, 2.55vw, 1.5rem) / var(--lh) 'Caveat', cursive;
@@ -438,8 +474,14 @@
       height: 21px;
     }
 
-    .letter-stamp-anchor {
+    .letter-postal-marks {
       top: 14px;
+      gap: 2px;
+    }
+
+    .letter-postmark {
+      width: 122px;
+      height: 70px;
     }
 
     .letter-stamp {
@@ -601,6 +643,17 @@
   flex-direction: column;
 }
 
+.page-chapter,
+.destination-book__chapter {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
+  text-transform: uppercase;
+  color: #7c2d3a;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  margin-bottom: 8px;
+}
+
 .page-title,
 .destination-book__title {
   font-family: 'Caveat', cursive;
@@ -620,87 +673,11 @@
   font-weight: 500;
 }
 
-.destination-book__photo {
-  position: relative;
-  width: min(100%, 142px);
-  margin: 9px auto 5px;
-  padding: 6px 6px 5px;
-  border: 1px solid rgba(120, 90, 60, 0.2);
-  background: #fffdf7;
-  box-shadow: 0 6px 12px -7px rgba(74, 64, 56, 0.42), 0 2px 4px rgba(74, 64, 56, 0.1);
-  transform: rotate(-2deg);
-}
-
-.destination-book__photo-tape {
-  position: absolute;
-  z-index: 2;
-  top: -5px;
-  width: 34px;
-  height: 11px;
-  pointer-events: none;
-}
-
-.destination-book__photo-tape--left {
-  left: 12px;
-  transform: rotate(-5deg);
-}
-
-.destination-book__photo-tape--right {
-  right: 12px;
-  transform: rotate(4deg);
-}
-
-.destination-book__photo-view {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border: 1px solid rgba(120, 90, 60, 0.12);
-  background: #e8dfd0;
-}
-
-.destination-book__photo-placeholder {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at 72% 28%, rgba(248, 201, 210, 0.68) 0 16%, transparent 16.5%),
-    linear-gradient(145deg, transparent 0 48%, rgba(185, 128, 63, 0.14) 48% 49%, transparent 49% 100%),
-    linear-gradient(35deg, #e8dfd0 0 34%, #f4e9db 34% 66%, #e4d7c6 66% 100%);
-}
-
-.destination-book__photo-placeholder span {
-  padding: 4px 9px 3px;
-  border: 1px solid rgba(95, 36, 48, 0.28);
-  color: #5f2430;
-  background: rgba(251, 246, 236, 0.88);
-  font: 700 0.78rem / 1 'Caveat', cursive;
-  letter-spacing: 0.06em;
-}
-
-.destination-book__photo-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.destination-book__photo-caption {
-  margin: 5px 0 0;
-  color: #5f2430;
-  font: 600 0.84rem / 1.05 'Caveat', cursive;
-  text-align: center;
-  text-wrap: balance;
-}
-
 .page-chips,
 .destination-book__chips,
 .destination-book__highlights {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 6px;
   margin-top: 12px;
 }
@@ -784,10 +761,6 @@
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
-.destination-book__cover-back .destination-book__in-emoji--cinema {
-  font-size: 2.5rem;
-}
-
 .cover-back p,
 .destination-book__cover-back p {
   font-family: 'Caveat', cursive;
@@ -817,13 +790,11 @@
 .destination-book__spine span {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-family: 'Caveat', cursive;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 3px;
   color: rgba(255, 255, 255, 0.92);
-  text-transform: none;
-  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -851,48 +822,12 @@
 
 .cover-emoji,
 .destination-book__emoji {
-  --cover-logo-size: clamp(100px, 28vw, 112px);
   position: absolute;
   top: 50%;
   left: 55%;
   transform: translate(-50%, -62%);
-  font-size: var(--cover-logo-size);
+  font-size: 4.6rem;
   filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
-}
-
-.destination-book__emoji:has(> .destination-book__shark) {
-  left: calc(50% + 17px);
-}
-
-.destination-book__museum-logo {
-  display: block;
-  width: var(--cover-logo-size);
-  max-width: 70vw;
-  height: auto;
-}
-
-.aquarium-shark {
-  filter: drop-shadow(0 0 2px rgba(186, 230, 253, 0.9));
-}
-
-.destination-book__shark {
-  display: block;
-  width: clamp(144px, 42vw, 160px);
-  max-width: 66%;
-  height: auto;
-}
-
-.destination-book__in-shark {
-  display: block;
-  width: 87.6px;
-  max-width: 62%;
-  height: auto;
-}
-
-.destination-book__in-museum-logo {
-  display: block;
-  width: 64px;
-  height: auto;
 }
 
 .cover-title,
@@ -907,6 +842,20 @@
   font-size: 1.3rem;
   color: #fff;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.cover-author,
+.destination-book__author {
+  position: absolute;
+  left: 46px;
+  right: 14px;
+  bottom: 24px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .card-badge,
@@ -933,17 +882,25 @@
   left: 44px;
   padding: 5px 12px;
   border-radius: 4px;
-  font-family: 'Caveat', cursive;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
   background: rgba(20, 14, 10, 0.5);
   color: #ffe9c9;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.25);
   transform: skewX(-6deg);
+}
+
+.destination-book__tag,
+.destination-book__author,
+.destination-book__spine span {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
+  text-transform: uppercase;
 }
 
 @media (max-width: 639px) {
@@ -966,20 +923,19 @@
     font-size: 0.72rem;
     line-height: 1.4;
   }
-  .destination-book__photo {
-    width: min(100%, 132px);
-    margin-top: 7px;
-    margin-bottom: 4px;
-    padding: 5px 5px 4px;
+  .cover-emoji,
+  .destination-book__emoji {
+    font-size: 3.8rem;
   }
-  .destination-book__photo-tape { width: 29px; height: 10px; }
-  .destination-book__photo-tape--left { left: 9px; }
-  .destination-book__photo-tape--right { right: 9px; }
-  .destination-book__photo-caption { font-size: 0.78rem; }
   .cover-title,
   .destination-book__cover-title {
     font-size: 1.15rem;
     bottom: 38px;
+  }
+  .cover-author,
+  .destination-book__author {
+    bottom: 18px;
+    font-size: 0.54rem;
   }
   .card-badge,
   .destination-book__badge {
@@ -994,7 +950,7 @@
     top: 12px;
     left: 40px;
     padding: 4px 10px;
-    font-size: 0.8rem;
+    font-size: 0.52rem;
   }
 }
 
@@ -1011,6 +967,10 @@
   .page-title,
   .destination-book__title {
     font-size: 1.25rem;
+  }
+  .cover-emoji,
+  .destination-book__emoji {
+    font-size: 3.8rem;
   }
   .cover-title,
   .destination-book__cover-title {

@@ -110,6 +110,7 @@ export default function CalendarJourney({
     >
       {/* Section Header */}
       <div className="text-center space-y-2 relative z-10">
+        <span className="font-handwritingPaper text-sm sm:text-base font-semibold text-burgundy-600">{ui.eyebrow}</span>
         <h2 className="font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900">{ui.heading}</h2>
         <p className="font-handwritingPaper text-lg sm:text-xl font-semibold text-burgundy-600">
           {isLocked ? ui.confirmedHint : config.calendar.subtitle}
@@ -232,7 +233,7 @@ export default function CalendarJourney({
             {isLocked ? (
               <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-handwritingPaper font-bold text-lg sm:text-xl shadow-sm">
                 <Check className="w-5 h-5 text-burgundy-600" />
-                <span className="font-handwritingPaper tabular-nums">{`${ui.lockedPrefix} ${formattedTempDate} 💗`}</span>
+                <span className="tabular-nums">{`${ui.lockedPrefix} ${formattedTempDate} 💗`}</span>
               </div>
             ) : (
               <button

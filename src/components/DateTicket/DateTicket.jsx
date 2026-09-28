@@ -123,7 +123,8 @@ export default function DateTicket({
     >
       {/* Header */}
       <div className="text-center max-w-lg mx-auto relative z-10">
-        <p className="font-handwritingPaper text-xl text-burgundy-600 mb-2">{ui.handNote}</p>
+        <p className="font-handwritingPaper text-xl text-burgundy-600 mb-1">{ui.handNote}</p>
+        <span className="paper-kicker text-xs">{ui.eyebrow}</span>
         <h2 className="font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900 mb-1" style={{ textWrap: 'balance' }}>
           {ui.heading}
         </h2>
@@ -150,12 +151,12 @@ export default function DateTicket({
         >
           {/* Postmark confirmation stamp */}
           <div className="absolute top-4 right-3 sm:top-6 sm:right-6 z-10 rotate-6 rounded-full border-2 border-dashed border-gold-500/50 px-3 py-1.5 text-center">
-              <span className="ticket-data-label flex items-center justify-center gap-1 text-gold-300">
+            <span className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] text-gold-300">
               <CheckCircleIcon size={12} weight="fill" aria-hidden="true" />
               {ui.stampConfirmed}
             </span>
             {postmarkDate && (
-              <span className="ticket-data-small block text-amber-200/80 mt-0.5 tabular-nums">
+              <span className="block text-[9px] font-semibold tracking-[0.1em] text-amber-200/80 mt-0.5 tabular-nums">
                 {postmarkDate}
               </span>
             )}
@@ -167,7 +168,7 @@ export default function DateTicket({
               <HeartIcon size={20} weight="fill" className="text-gold-300" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <span className="ticket-data-label block text-amber-200/80">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/80 block">
                 {ui.labelAdmit}
               </span>
               <h3 className="font-handwritingPaper font-bold text-lg sm:text-xl text-white leading-snug">
@@ -180,30 +181,30 @@ export default function DateTicket({
           <div className="py-6 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-5">
             <div className="flex flex-col flex-grow min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="ticket-data-label text-amber-200/80">{ui.labelDateWith}</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelDateWith}</span>
                 <p className="font-handwritingPaper font-bold text-lg text-white">
                   {config.recipientName || 'You'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="ticket-data-label text-amber-200/80">{ui.labelFrom}</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelFrom}</span>
                 <p className="font-handwritingPaper font-bold text-lg text-white">
                   {config.senderName || 'Me'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="ticket-data-label text-amber-200/80">{ui.labelDestination}</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelDestination}</span>
                 <p className="font-handwritingPaper font-semibold text-base sm:text-lg text-gold-300 sm:text-right">
                   {selectedPlace || 'Somewhere Special'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 py-3">
-                <span className="ticket-data-label text-amber-200/80">{ui.labelSchedule}</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelSchedule}</span>
                 <div className="sm:text-right">
-                  <p className="ticket-date-value font-handwritingPaper font-semibold text-white text-lg sm:text-xl tabular-nums">
+                  <p className="font-handwritingPaper font-semibold text-white text-sm sm:text-base">
                     {formattedDate || 'To be scheduled'}
                   </p>
                   <span className="font-handwritingPaper text-sm text-amber-200/70 font-semibold">{ui.noteAllDay}</span>
@@ -222,7 +223,7 @@ export default function DateTicket({
 
           {/* Ticket Footer — perforation rule and sign-off */}
           <div className="pt-4 border-t border-dashed border-gold-500/30 flex items-center justify-between gap-3">
-            <span className="ticket-data-small text-amber-200/70 tabular-nums">
+            <span className="text-[10px] font-semibold tracking-[0.18em] text-amber-200/70 uppercase">
               {`${ui.footerFor} • ${(config.recipientName || 'You').toUpperCase()} • ${ui.footerOnly}`}
             </span>
             <span className="font-handwritingPaper text-lg text-gold-300">{ui.footerSignOff}</span>
