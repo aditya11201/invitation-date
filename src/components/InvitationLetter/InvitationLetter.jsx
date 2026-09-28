@@ -9,24 +9,29 @@ export default function InvitationLetter({
   isAccepted,
   noClickCount,
   setNoClickCount,
-  onQuestionReady,
 }) {
   const questionRef = useRef(null);
   const yesButtonRef = useRef(null);
+  const hasSnappedToQuestion = useRef(false);
   // YES escalation: 'inline' grows in-place; 'pinned' breaks out of the paper
   // at the button's exact screen rect; 'full' smoothly covers the whole viewport.
   const [yesPhase, setYesPhase] = useState('inline');
   const [yesRect, setYesRect] = useState(null);
 
-  // Signal question readiness for scroll lock once the question block enters view
+  // Reveal and center the question once its block first enters view.
   useEffect(() => {
-    if (isAccepted || !questionRef.current || !onQuestionReady) return undefined;
+    if (isAccepted || !questionRef.current) return undefined;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !isAccepted) {
-            onQuestionReady(true);
+          if (entry.isIntersecting && !hasSnappedToQuestion.current && !isAccepted) {
+            hasSnappedToQuestion.current = true;
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            questionRef.current?.scrollIntoView({
+              block: 'center',
+              behavior: reducedMotion ? 'instant' : 'smooth',
+            });
           }
         });
       },
@@ -35,7 +40,7 @@ export default function InvitationLetter({
 
     observer.observe(questionRef.current);
     return () => observer.disconnect();
-  }, [isAccepted, onQuestionReady]);
+  }, [isAccepted]);
 
   const noProgression = config.noProgression;
 
@@ -77,10 +82,6 @@ export default function InvitationLetter({
       navigator.vibrate([80, 50, 120]);
     }
 
-    if (onQuestionReady) {
-      onQuestionReady(false);
-    }
-
     onAccept();
   };
 
@@ -89,7 +90,7 @@ export default function InvitationLetter({
     if (yesPhase !== 'inline') {
       const full = yesPhase === 'full';
       return {
-        className: `group flex items-center justify-center gap-3 bg-burgundy-900 text-amber-100 font-bold border border-gold-300 shadow-2xl cursor-pointer ${
+        className: `rsvp-yes-button font-handwritingPaper group flex items-center justify-center gap-3 bg-burgundy-900 text-amber-100 font-bold border border-gold-300 shadow-2xl cursor-pointer ${
           full ? 'text-2xl sm:text-4xl' : 'text-sm sm:text-base'
         }`,
         style: {
@@ -115,7 +116,7 @@ export default function InvitationLetter({
       3: 'scale-[2.20] z-30 shadow-glow-pink',
     };
     return {
-      className: `group inline-flex items-center justify-center gap-2 px-6 py-3 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 min-h-[44px] cursor-pointer ${
+      className: `rsvp-yes-button font-handwritingPaper group inline-flex items-center justify-center gap-2 px-6 py-3 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 min-h-[44px] cursor-pointer ${
         scaleClasses[noClickCount] || 'scale-100'
       }`,
       style: undefined,
@@ -128,61 +129,80 @@ export default function InvitationLetter({
   return (
     <section
       id="invitation-letter-section"
-      className="relative py-10 border-b border-burgundy-200/60 space-y-6 select-none"
+      className="letter-section relative select-none"
     >
-      {/* Section eyebrow */}
-      <div className="text-center">
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">
-          {config.letter.tag}
-        </span>
-      </div>
+      <div className="letter-face">
+        <Paperclip aria-hidden="true" className="letter-paperclip" />
+        <span className="letter-top-tape" aria-hidden="true" />
 
-      {/* Letter card on the continuous paper sheet */}
-      <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-burgundy-200/70 shadow-inner p-6 sm:p-8 relative space-y-4">
-        {/* Paperclip decor */}
-        <Paperclip
-          aria-hidden="true"
-          className="absolute -top-3 left-6 w-6 h-6 transform -rotate-45 text-burgundy-800 opacity-80"
-        />
+        <div className="letter-postal-marks" aria-hidden="true">
+          <svg className="letter-postmark" viewBox="0 0 164 86" fill="none">
+            <defs>
+              <path id="invitation-postmark-copy" d="M88 43a35 35 0 0 1 70 0" />
+            </defs>
+            <path
+              d="M1 21c12-8 21 8 33 0s21 8 33 0 13-3 20 0M1 32c12-8 21 8 33 0s21 8 33 0 13-3 20 0M1 43c12-8 21 8 33 0s21 8 33 0 13-3 20 0M1 54c12-8 21 8 33 0s21 8 33 0 13-3 20 0"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+            <circle cx="123" cy="43" r="35" stroke="currentColor" strokeWidth="1.15" />
+            <circle cx="123" cy="43" r="29" stroke="currentColor" strokeWidth="0.8" />
+            <text>
+              <textPath href="#invitation-postmark-copy" startOffset="50%" textAnchor="middle">
+                DARI: AKU ✦ UNTUK: KAMU ✦
+              </textPath>
+            </text>
+            <text className="letter-postmark-center" x="123" y="46" textAnchor="middle">HARI INI</text>
+          </svg>
 
-        {/* Salutation */}
-        <h2 className="font-handwritingPaper text-2xl sm:text-3xl text-burgundy-900 font-bold">
-          {config.letter?.greeting}
-        </h2>
+          <div className="letter-stamp">
+            <span className="letter-stamp-label">LOVE·POST</span>
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 20.2 4.8 13A5.05 5.05 0 0 1 12 5.9 5.05 5.05 0 0 1 19.2 13L12 20.2Z"
+                stroke="currentColor"
+                strokeWidth="1.35"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M4.2 9.5h4l1.3-2.2 2.1 5 1.5-3h6.7"
+                stroke="currentColor"
+                strokeWidth="0.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="letter-stamp-label">FOREVER</span>
+          </div>
+        </div>
 
-        {/* Letter body — always fully visible */}
-        <div className="space-y-4">
+        <h2 className="letter-salutation">{config.letter?.greeting}</h2>
+
+        <div className="letter-copy">
           {paragraphs.map((para, idx) => (
-            <p
-              key={idx}
-              className="font-serif text-sm sm:text-base text-ink/90 leading-relaxed"
-              style={{ textWrap: 'pretty' }}
-            >
-              {para}
+            <p key={idx} style={{ textWrap: 'pretty' }}>
+              {idx === 3 ? <span className="letter-highlight">{para}</span> : para}
             </p>
           ))}
         </div>
 
-        {/* Ornament divider — rule-heart-rule */}
-        <div aria-hidden="true" className="flex items-center gap-3">
-          <span className="flex-1 h-px bg-burgundy-200" />
-          <Heart className="w-3 h-3 text-burgundy-400 fill-burgundy-400" />
-          <span className="flex-1 h-px bg-burgundy-200" />
-        </div>
-
-        {/* The Big Question Area */}
-        <div ref={questionRef} className="text-center">
-          <h3 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">
+        <section ref={questionRef} className="rsvp-card" aria-labelledby="invitation-question">
+          <span className="rsvp-tape rsvp-tape--left" aria-hidden="true" />
+          <span className="rsvp-tape rsvp-tape--right" aria-hidden="true" />
+          <h3 className="rsvp-question font-handwritingPaper font-bold" id="invitation-question">
             {config.letter.question}
           </h3>
-          <p className="font-serif italic text-sm sm:text-base text-ink/70">
+          <div className="rsvp-heart-divider" aria-hidden="true">
+            <span /><b>♡</b><span />
+          </div>
+          <p className="rsvp-subtext font-handwritingPaper not-italic font-semibold">
             {config.letter.subtext}
           </p>
 
-          {/* YES / NO Action Buttons */}
           {!isAccepted ? (
             <div className="relative min-h-[90px] mt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-              {/* Subtle heart reaction — re-keyed per No click so the pop replays */}
               {noClickCount > 0 && (
                 <span
                   key={noClickCount}
@@ -193,9 +213,6 @@ export default function InvitationLetter({
                 </span>
               )}
 
-              {/* YES Button — portals to <body> once it breaks out of the paper,
-                  because the letter card's backdrop-filter makes it a containing
-                  block that would otherwise clip and skew the fixed positioning. */}
               {yesPhase === 'inline' ? (
                 <button
                   ref={yesButtonRef}
@@ -208,7 +225,6 @@ export default function InvitationLetter({
                 </button>
               ) : (
                 <>
-                  {/* Placeholder keeps the NO button from shifting while Yes is portaled */}
                   <span
                     aria-hidden="true"
                     style={{ width: yesRect.width, height: yesRect.height }}
@@ -233,25 +249,23 @@ export default function InvitationLetter({
                 </>
               )}
 
-              {/* NO Button (5-click playful gimmick) */}
               {noClickCount < 5 && (
                 <button
                   type="button"
                   onClick={handleNoClick}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white hover:bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-semibold text-sm rounded-full shadow-sm active:scale-95 transition duration-200 min-h-[44px] cursor-pointer"
+                  className="rsvp-no-button font-handwritingPaper inline-flex items-center justify-center px-6 py-3 bg-white hover:bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-semibold text-sm rounded-full shadow-sm active:scale-95 transition duration-200 min-h-[44px] cursor-pointer"
                 >
                   <span>{noProgression[noClickCount]}</span>
                 </button>
               )}
             </div>
           ) : (
-            /* Accepted Banner */
-            <div className="inline-flex items-center gap-2 px-6 py-3 mt-6 bg-burgundy-900 border border-gold-300 text-amber-100 rounded-full font-bold text-sm shadow-lg animate-heartPop">
+            <div className="rsvp-accepted-banner font-handwritingPaper animate-heartPop" role="status" aria-live="polite">
               <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
               <span>{config.ui.question.acceptedBanner}</span>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </section>
   );

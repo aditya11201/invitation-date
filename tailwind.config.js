@@ -54,8 +54,8 @@ export default {
         },
       },
       fontFamily: {
-        handwriting: ['"Dancing Script"', '"Caveat"', 'cursive'],
         display: ['"Playfair Display"', '"Cormorant Garamond"', 'serif'],
+        serif: ['"Playfair Display"', '"Cormorant Garamond"', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
         handwritingPaper: ['"Caveat"', 'cursive'],
       },

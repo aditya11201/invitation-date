@@ -37,7 +37,7 @@ export default function Navbar({
           <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-pink-400 to-purple-400 flex items-center justify-center shadow-sm">
             <Heart className="w-3.5 h-3.5 text-white fill-white animate-pulse" />
           </div>
-          <span className="font-display font-semibold text-slate-800 text-sm sm:text-base tracking-wide flex items-center gap-1.5">
+          <span className="font-handwritingPaper font-semibold text-burgundy-900 text-base sm:text-lg flex items-center gap-1.5">
             <span>For {recipientName || 'You'}</span>
             <span className="text-romantic-500 font-normal text-xs sm:text-sm">💗</span>
           </span>
@@ -48,12 +48,12 @@ export default function Navbar({
           <button
             onClick={handleMusicClick}
             aria-label={musicEnabled ? 'Mute romantic music' : 'Play romantic music'}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-romantic-100/70 hover:bg-romantic-200/80 text-romantic-700 text-xs font-semibold tracking-wide border border-romantic-200 transition-all duration-200 active:scale-95 cursor-pointer min-h-[44px]"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-romantic-100/70 hover:bg-romantic-200/80 text-romantic-700 font-handwritingPaper text-sm font-semibold border border-romantic-200 transition-all duration-200 active:scale-95 cursor-pointer min-h-[44px]"
           >
             {musicEnabled ? (
               <>
                 <Volume2 className="w-4 h-4 text-romantic-600 animate-pulse" />
-                <span className="hidden sm:inline text-xs">Music On</span>
+                <span className="hidden sm:inline">Music On</span>
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
@@ -62,7 +62,7 @@ export default function Navbar({
             ) : (
               <>
                 <VolumeX className="w-4 h-4 text-slate-500" />
-                <span className="hidden sm:inline text-xs text-slate-600">Music Off</span>
+                <span className="hidden sm:inline text-slate-600">Music Off</span>
               </>
             )}
           </button>

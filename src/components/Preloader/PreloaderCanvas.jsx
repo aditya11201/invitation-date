@@ -324,11 +324,7 @@ function wrapCanvasText(context, text, maxWidth) {
   return lines;
 }
 
-/**
- * Letter face mirroring the long paper sheet's identity (.paper-vertical-sheet):
- * #FDFBF7 base, #e5dccb dot grain every 16px, vertical sheen overlay,
- * warm gold hairline edge, rounded corners on transparency.
- */
+/** Letter face paper texture, in step with the long paper sheet. */
 function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPrompt, recipientName }) {
   const width = canvas.width;
   const height = canvas.height;
@@ -340,33 +336,47 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
   context.save();
   context.beginPath();
     traceRoundRect(context, 0, 0, width, height, radius);
-  context.fillStyle = '#FDFBF7';
+  context.fillStyle = '#fbf6ec';
   context.fill();
 
-  // Dot grain clipped inside the paper path.
+  // Sheen is under the ruled stationery marks.
   context.clip();
-  context.fillStyle = '#e5dccb';
-  for (let y = 8; y < height; y += 16) {
-    for (let x = 8; x < width; x += 16) {
-      context.beginPath();
-      context.arc(x, y, 0.7, 0, Math.PI * 2);
-      context.fill();
-    }
-  }
-
-  // Vertical sheen overlay.
   const sheen = context.createLinearGradient(0, 0, 0, height);
   sheen.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-  sheen.addColorStop(1, 'rgba(248, 242, 230, 0.4)');
+  sheen.addColorStop(1, 'rgba(185, 128, 63, 0.025)');
   context.fillStyle = sheen;
   context.fillRect(0, 0, width, height);
+
+  // 34px blue-grey rules, with the rose margin and two subtle fold lines.
+  context.lineWidth = 1;
+  context.strokeStyle = 'rgba(139,157,193,.22)';
+  context.beginPath();
+  for (let y = 34; y < height; y += 34) {
+    context.moveTo(0, y);
+    context.lineTo(width, y);
+  }
+  context.stroke();
+
+  context.strokeStyle = 'rgba(196,112,127,.4)';
+  context.beginPath();
+  context.moveTo(width * 0.085, 0);
+  context.lineTo(width * 0.085, height);
+  context.stroke();
+
+  context.strokeStyle = 'rgba(120,90,60,.07)';
+  context.beginPath();
+  context.moveTo(width * 0.34, 0);
+  context.lineTo(width * 0.34, height);
+  context.moveTo(width * 0.67, 0);
+  context.lineTo(width * 0.67, height);
+  context.stroke();
   context.restore();
 
   // Subtle warm gold hairline (no drawn frame).
   context.save();
   context.beginPath();
     traceRoundRect(context, 3, 3, width - 6, height - 6, radius);
-  context.strokeStyle = 'rgba(212, 163, 115, 0.35)';
+  context.strokeStyle = 'rgba(185, 128, 63, 0.35)';
   context.lineWidth = 2;
   context.stroke();
   context.restore();
@@ -377,7 +387,7 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
 
   // Caveat handwriting greeting.
   context.font = "600 78px 'Caveat', cursive";
-  context.fillStyle = '#4D121D';
+  context.fillStyle = '#4a4038';
   let cursorY = 250;
   wrapCanvasText(context, greeting || `For ${recipientName} 💗`, 560).forEach((lineText) => {
     context.fillText(lineText, centerX, cursorY);
@@ -387,7 +397,7 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
   // Italic Playfair subtitle, 60px below the greeting block.
   if (subtitle) {
     context.font = "italic 36px 'Playfair Display', Georgia, serif";
-    context.fillStyle = 'rgba(42, 27, 24, 0.8)';
+    context.fillStyle = 'rgba(138, 122, 109, 0.8)';
     let subtitleY = cursorY - 92 + 60;
     wrapCanvasText(context, subtitle, 520).forEach((lineText) => {
       context.fillText(lineText, centerX, subtitleY);
@@ -403,7 +413,7 @@ function drawLetterCanvas(context, canvas, { badge, greeting, subtitle, scrollPr
     } catch {
       // ignore
     }
-    context.fillStyle = '#7A2030';
+    context.fillStyle = '#7c2d3a';
     context.fillText(String(scrollPrompt).toUpperCase(), centerX, height - 130);
   }
 

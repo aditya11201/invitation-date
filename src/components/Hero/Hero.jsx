@@ -32,7 +32,7 @@ export default function Hero({ config, onScrollDown }) {
       {/* Main Handwriting Greeting */}
       <div className="max-w-2xl mx-auto min-h-[120px] sm:min-h-[160px] flex items-center justify-center">
         <h1
-          className={`font-handwritingPaper text-4xl sm:text-6xl font-bold leading-tight transition-colors duration-700 ${
+          className={`font-handwritingPaper text-[clamp(3rem,8vw,5rem)] font-bold leading-tight transition-colors duration-700 ${
             isTypingDone ? 'text-burgundy-900' : 'text-ink/50'
           }`}
           style={{ textWrap: 'balance' }}
@@ -46,7 +46,7 @@ export default function Hero({ config, onScrollDown }) {
 
       {/* Subtitle */}
       <p
-        className={`max-w-md mx-auto font-serif italic text-base sm:text-lg text-ink/80 transition-opacity duration-1000 ${
+        className={`max-w-md mx-auto font-handwritingPaper text-xl sm:text-2xl font-semibold text-burgundy-600 transition-opacity duration-1000 ${
           isTypingDone ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ textWrap: 'pretty' }}
@@ -66,7 +66,7 @@ export default function Hero({ config, onScrollDown }) {
           onScrollDown();
         }}
       >
-        <span className="text-xs font-mono tracking-widest text-burgundy-800 uppercase font-bold">
+        <span className="font-handwritingPaper text-lg font-semibold text-burgundy-800">
           {config.hero.scrollPrompt}
         </span>
         <span className="w-10 h-10 rounded-full bg-burgundy-900 text-amber-100 flex items-center justify-center shadow-md group-hover:bg-burgundy-800 group-hover:translate-y-1 transition">

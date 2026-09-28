@@ -84,21 +84,432 @@
 }
 
 /* ============================================================
-   Long-paper redesign tokens — source: reference-new-style.html
+   Approved paper-redesign-poc-v3 treatment.
    Additive only. Rules above are frozen (envelope view).
    ============================================================ */
 @layer components {
   /* Single continuous vertical paper sheet */
   .paper-vertical-sheet {
-    background-color: #FDFBF7;
-    background-image:
-      radial-gradient(#e5dccb 0.7px, transparent 0.7px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(248, 242, 230, 0.4) 100%);
-    background-size: 16px 16px, 100% 100%;
+    --paper-margin-line: clamp(50px, 8vw, 76px);
+    --paper-content-pad: 20px;
+    --lh:34px;
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    /* Retain the POC paper edge over LongPaper's legacy rounded utility. */
+    border-radius: 3px !important;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .paper-vertical-sheet::before,
+  .paper-vertical-sheet::after {
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .paper-vertical-sheet::before {
+    z-index: -2;
+    border: 1px solid rgba(120, 90, 60, 0.12);
+    background: #f3ecdd;
     box-shadow:
-      0 0 0 1px rgba(212, 163, 115, 0.25),
-      0 20px 50px -10px rgba(0, 0, 0, 0.75),
-      0 10px 20px -5px rgba(77, 18, 29, 0.3);
+      8px 3px 0 0 #efe6d3,
+      0 12px 26px rgba(74, 64, 56, 0.08);
+    transform: translate(-8px, 5px) rotate(-1deg);
+  }
+
+  .paper-vertical-sheet::after {
+    z-index: -1;
+    border: 1px solid rgba(120, 90, 60, 0.16);
+    background-color: #fbf6ec;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E"),
+      linear-gradient(to right,
+        transparent calc(var(--paper-margin-line) - 0.5px),
+        rgba(196,112,127,.4) calc(var(--paper-margin-line) - 0.5px),
+        rgba(196,112,127,.4) calc(var(--paper-margin-line) + 0.5px),
+        transparent calc(var(--paper-margin-line) + 0.5px)),
+      linear-gradient(90deg,
+        transparent 33.85%, rgba(120,90,60,.07) 34%, transparent 34.15%,
+        transparent 66.85%, rgba(120,90,60,.07) 67%, transparent 67.15%),
+      repeating-linear-gradient(to bottom,
+        transparent 0, transparent 33px, rgba(139,157,193,.22) 33px, rgba(139,157,193,.22) 34px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(185, 128, 63, 0.025));
+    background-repeat: repeat, no-repeat, no-repeat, repeat, no-repeat;
+    background-size: 180px 180px, 100% 100%, 100% 100%, 100% 34px, 100% 100%;
+    background-blend-mode: multiply, normal, normal, normal, normal;
+    box-shadow:
+      inset 0 0 0 1px rgba(185, 128, 63, 0.12),
+      inset 0 1px 9px rgba(74, 64, 56, 0.05),
+      inset 0 0 36px rgba(185, 128, 63, 0.08),
+      0 28px 64px -28px rgba(74, 64, 56, 0.34),
+      0 5px 14px rgba(74, 64, 56, 0.08);
+  }
+
+  @media (min-width: 640px) {
+    .paper-vertical-sheet {
+      --paper-content-pad: 40px;
+    }
+  }
+
+  .letter-section {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(124, 45, 58, 0.18);
+  }
+
+  /* Recolor the existing typewriter states without changing Hero's fluid type or timing. */
+  .paper-vertical-sheet > section:first-of-type h1[class*='text-ink/50'] {
+    color: rgba(138, 122, 109, 0.68) !important;
+  }
+
+  .paper-vertical-sheet > section:first-of-type h1[class*='text-burgundy-900'] {
+    color: #5f2430 !important;
+  }
+
+  .paper-vertical-sheet > section:first-of-type > p {
+    color: #8a7a6d !important;
+  }
+
+  .paper-vertical-sheet > section:first-of-type > button > span:first-child {
+    color: #7c2d3a !important;
+  }
+
+  .paper-kicker {
+    color: #7c2d3a;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
+    text-transform: uppercase;
+  }
+
+  .letter-face {
+    position: relative;
+    padding-top: 112px;
+  }
+
+  .letter-paperclip {
+    position: absolute;
+    z-index: 4;
+    top: -14px;
+    left: clamp(12px, 3vw, 28px);
+    width: 38px;
+    height: 38px;
+    color: #b9803f;
+    filter: drop-shadow(0 2px 2px rgba(74, 64, 56, 0.16));
+    transform: rotate(-12deg);
+    pointer-events: none;
+  }
+
+  .letter-top-tape {
+    position: absolute;
+    z-index: 4;
+    top: -11px;
+    left: 50%;
+    width: 112px;
+    height: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.7);
+    border-bottom: 1px solid rgba(74, 64, 56, 0.08);
+    background:
+      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0 4px, transparent 4px 10px),
+      rgba(196, 112, 127, 0.72);
+    box-shadow: 0 2px 5px rgba(74, 64, 56, 0.12);
+    transform: translateX(-50%) rotate(1.5deg);
+    pointer-events: none;
+  }
+
+  .letter-postal-marks {
+    position: absolute;
+    z-index: 4;
+    top: 18px;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(124, 45, 58, 0.62);
+    pointer-events: none;
+  }
+
+  .letter-postmark {
+    width: 142px;
+    height: 78px;
+    overflow: visible;
+  }
+
+  .letter-postmark text {
+    fill: currentColor;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.055em;
+  }
+
+  .letter-postmark .letter-postmark-center {
+    font-size: 8px;
+    letter-spacing: 0.11em;
+  }
+
+  .letter-stamp {
+    display: flex;
+    width: 66px;
+    height: 82px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 1px dashed rgba(185, 128, 63, 0.9);
+    background: rgba(196, 112, 127, 0.08);
+    box-shadow: inset 0 0 0 4px rgba(124, 45, 58, 0.055);
+    color: #7c2d3a;
+    transform: rotate(2deg);
+  }
+
+  .letter-stamp-label {
+    color: #8a7a6d;
+    font: 700 7px / 1 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: 0.075em;
+    white-space: nowrap;
+  }
+
+  .letter-stamp svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .letter-salutation {
+    margin: 0 0 28px;
+    color: #5f2430;
+    font: 700 clamp(1.75rem, 4vw, 2.3rem) / 1.1 'Caveat', cursive;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .letter-copy {
+    --copy-indent: max(0px, calc(var(--paper-margin-line) - var(--paper-content-pad)));
+    width: min(66ch, calc(100% - var(--copy-indent)));
+    margin-left: var(--copy-indent);
+    padding-bottom: 56px;
+    color: #4a4038;
+    font: 600 clamp(1.2rem, 2.55vw, 1.5rem) / var(--lh) 'Caveat', cursive;
+    text-wrap: pretty;
+  }
+
+  .letter-copy p {
+    margin: 0;
+  }
+
+  .letter-copy p + p {
+    margin-top: var(--lh);
+  }
+
+  .letter-copy p:first-child::first-letter {
+    float: left;
+    padding: 0.08em 0.11em 0 0;
+    color: #b9803f;
+    font: 900 4.1em / 0.78 'Playfair Display', Georgia, serif;
+  }
+
+  .letter-highlight {
+    padding: 0 0.08em;
+    color: #5f2430;
+    background: linear-gradient(transparent 55%, rgba(185, 128, 63, 0.23) 55%, rgba(185, 128, 63, 0.23) 91%, transparent 91%);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .rsvp-card {
+    position: relative;
+    z-index: 4;
+    width: min(100%, 660px);
+    margin: -24px auto 0;
+    padding: clamp(38px, 5vw, 48px) clamp(22px, 5vw, 48px) 40px;
+    border: 1px solid rgba(124, 45, 58, 0.25);
+    border-radius: 3px;
+    background: #fffdf7;
+    box-shadow:
+      inset 0 0 0 1px rgba(124, 45, 58, 0.18),
+      0 3px 7px -2px rgba(74, 64, 56, 0.2),
+      0 16px 24px -16px rgba(74, 64, 56, 0.34),
+      0 4px 12px rgba(74, 64, 56, 0.06);
+    text-align: center;
+    transform: rotate(-1.2deg);
+    transform-origin: center;
+  }
+
+  .rsvp-card::before {
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(185, 128, 63, 0.58);
+    content: '';
+    pointer-events: none;
+  }
+
+  .rsvp-tape {
+    position: absolute;
+    z-index: 3;
+    top: -11px;
+    width: 76px;
+    height: 21px;
+    border-top: 1px solid rgba(255, 255, 255, 0.68);
+    border-bottom: 1px solid rgba(74, 64, 56, 0.08);
+    background: rgba(143, 158, 112, 0.82);
+    box-shadow: 0 2px 5px rgba(74, 64, 56, 0.11);
+    pointer-events: none;
+  }
+
+  .rsvp-tape--left {
+    left: 24px;
+    transform: rotate(-3deg);
+  }
+
+  .rsvp-tape--right {
+    right: 24px;
+    transform: rotate(2.5deg);
+  }
+
+  .rsvp-question {
+    position: relative;
+    margin: 0;
+    color: #5f2430;
+    font: 900 clamp(1.8rem, 4.3vw, 2.65rem) / 1.12 'Playfair Display', Georgia, serif;
+    text-wrap: balance;
+  }
+
+  .rsvp-heart-divider {
+    display: flex;
+    width: min(100%, 330px);
+    align-items: center;
+    gap: 14px;
+    margin: 21px auto 12px;
+    color: #7c2d3a;
+  }
+
+  .rsvp-heart-divider span {
+    height: 1px;
+    flex: 1;
+    background: rgba(185, 128, 63, 0.72);
+  }
+
+  .rsvp-heart-divider b {
+    font: 400 1.4rem / 1 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .rsvp-subtext {
+    margin: 0;
+    color: #7c2d3a;
+    font: italic 600 clamp(1.08rem, 1.8vw, 1.28rem) / 1.5 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .rsvp-yes-button {
+    background: linear-gradient(135deg, #7c2d3a 0%, #5f2430 72%, #4a1e29 100%) !important;
+    border: 1px solid rgba(185, 128, 63, 0.8) !important;
+    color: #fffdf7 !important;
+    box-shadow:
+      0 0 0 3px rgba(196, 112, 127, 0.12),
+      0 0 22px rgba(196, 112, 127, 0.3),
+      0 8px 20px rgba(95, 36, 48, 0.24),
+      inset 0 1px rgba(255, 255, 255, 0.16) !important;
+  }
+
+  .rsvp-yes-button:hover {
+    background: linear-gradient(135deg, #7c2d3a 0%, #5f2430 72%, #4a1e29 100%) !important;
+    box-shadow:
+      0 0 0 4px rgba(196, 112, 127, 0.16),
+      0 0 28px rgba(196, 112, 127, 0.38),
+      0 10px 24px rgba(95, 36, 48, 0.28),
+      inset 0 1px rgba(255, 255, 255, 0.18) !important;
+  }
+
+  .rsvp-no-button {
+    min-height: 50px !important;
+    border: 1px solid rgba(124, 45, 58, 0.34) !important;
+    color: #7c2d3a !important;
+    background: #fffdf7 !important;
+    box-shadow: 0 3px 10px rgba(74, 64, 56, 0.055) !important;
+  }
+
+  .rsvp-no-button:hover {
+    border-color: rgba(124, 45, 58, 0.56) !important;
+    background: rgba(196, 112, 127, 0.07) !important;
+    box-shadow: 0 5px 14px rgba(74, 64, 56, 0.09) !important;
+  }
+
+  .rsvp-accepted-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 17px 26px;
+    border: 1px solid rgba(185, 128, 63, 0.8) !important;
+    border-radius: 999px;
+    color: #fffdf7 !important;
+    background: linear-gradient(135deg, #7c2d3a, #5f2430 76%) !important;
+    box-shadow: 0 0 24px rgba(196, 112, 127, 0.22), 0 10px 26px rgba(95, 36, 48, 0.2) !important;
+    font: 700 1rem / 1.4 'Caveat', cursive;
+    text-align: center;
+  }
+
+  @media (max-width: 639px) {
+    .letter-section {
+      padding-top: 2.5rem;
+      padding-bottom: 2rem;
+    }
+
+    .letter-face {
+      padding-top: 96px;
+    }
+
+    .letter-paperclip {
+      left: 12px;
+      width: 37px;
+      height: 37px;
+    }
+
+    .letter-top-tape {
+      width: 94px;
+      height: 21px;
+    }
+
+    .letter-postal-marks {
+      top: 14px;
+      gap: 2px;
+    }
+
+    .letter-postmark {
+      width: 122px;
+      height: 70px;
+    }
+
+    .letter-stamp {
+      width: 58px;
+      height: 75px;
+    }
+
+    .letter-copy {
+      padding-bottom: 60px;
+      font-size: clamp(1.2rem, 5.2vw, 1.42rem);
+    }
+
+    .rsvp-card {
+      padding: 38px 20px 34px;
+    }
+
+    .rsvp-tape {
+      width: 65px;
+      height: 19px;
+    }
+
+    .rsvp-tape--left {
+      left: 17px;
+    }
+
+    .rsvp-tape--right {
+      right: 17px;
+    }
   }
 
   .airmail-strip {
@@ -235,28 +646,30 @@
 .page-chapter,
 .destination-book__chapter {
   font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 2px;
+  font-weight: 600;
+  letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
   text-transform: uppercase;
-  color: #b08968;
+  color: #7c2d3a;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   margin-bottom: 8px;
 }
 
 .page-title,
 .destination-book__title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: #3d3128;
+  font-family: 'Caveat', cursive;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #5f2430;
   line-height: 1.15;
   margin-bottom: 8px;
 }
 
 .page-text,
 .destination-book__copy {
-  font-size: 0.7rem;
-  line-height: 1.65;
-  color: #6b5d4f;
+  font-family: 'Caveat', cursive;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #4a4038;
   font-weight: 500;
 }
 
@@ -274,11 +687,12 @@
 .destination-book__highlights span {
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-family: 'Caveat', cursive;
+  font-size: 0.72rem;
+  font-weight: 600;
   background: #fff;
   border: 1.5px dashed #cbb89a;
-  color: #7a6a55;
+  color: #5f2430;
   transform: rotate(-1deg);
 }
 
@@ -292,10 +706,12 @@
 .destination-book__page-number {
   margin-top: auto;
   text-align: center;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-style: italic;
-  font-size: 0.7rem;
-  color: #a08d72;
+  font-family: 'Caveat', cursive;
+  font-style: normal;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #8a7a6d;
 }
 
 /* ============ COVER (yang membuka) ============ */
@@ -347,11 +763,12 @@
 
 .cover-back p,
 .destination-book__cover-back p {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-style: italic;
-  font-size: 0.78rem;
-  color: rgba(255, 244, 229, 0.85);
-  line-height: 1.6;
+  font-family: 'Caveat', cursive;
+  font-style: normal;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fbf6ec;
+  line-height: 1.35;
 }
 
 /* spine buku */
@@ -420,12 +837,11 @@
   right: 14px;
   bottom: 44px;
   text-align: center;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 800;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
   font-size: 1.3rem;
   color: #fff;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-  letter-spacing: 0.5px;
 }
 
 .cover-author,
@@ -478,6 +894,15 @@
   transform: skewX(-6deg);
 }
 
+.destination-book__tag,
+.destination-book__author,
+.destination-book__spine span {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: clamp(0.22em, 0.65vw, 0.35em);
+  text-transform: uppercase;
+}
+
 @media (max-width: 639px) {
   .date-card,
   .destination-book {
@@ -490,13 +915,13 @@
   }
   .page-title,
   .destination-book__title {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     margin-bottom: 6px;
   }
   .page-text,
   .destination-book__copy {
-    font-size: 0.65rem;
-    line-height: 1.5;
+    font-size: 0.72rem;
+    line-height: 1.4;
   }
   .cover-emoji,
   .destination-book__emoji {

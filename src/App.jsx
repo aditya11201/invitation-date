@@ -16,7 +16,6 @@ export default function App() {
   // Application State
   const [hasEntered, setHasEntered] = useState(false);
   const [acceptedInvitation, setAcceptedInvitation] = useState(false);
-  const [isQuestionLocked, setIsQuestionLocked] = useState(false);
   const [noClickCount, setNoClickCount] = useState(0);
 
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -33,19 +32,6 @@ export default function App() {
   const [preloaderMounted, setPreloaderMounted] = useState(true);
 
   const [scrollProgress, setScrollProgress] = useState(0);
-
-  // PRD Scroll Lock: lock scrolling only once the question is fully revealed, unlock on YES, clean up on unmount/reset
-  useEffect(() => {
-    if (isQuestionLocked && !acceptedInvitation) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isQuestionLocked, acceptedInvitation]);
 
   // Track scroll progress for global journey progress bar
   useEffect(() => {
@@ -81,10 +67,8 @@ export default function App() {
     }
   };
 
-  // Accept Yes: unlocks scroll and moves forward
+  // Accept Yes and move forward
   const handleAcceptInvitation = () => {
-    setIsQuestionLocked(false);
-    document.body.style.overflow = '';
     setAcceptedInvitation(true);
 
     // Smooth scroll down slightly to celebration
@@ -136,13 +120,10 @@ export default function App() {
 
   // Reset to initial state
   const handleReset = () => {
-    setIsQuestionLocked(false);
-    document.body.style.overflow = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => {
       setHasEntered(false);
       setAcceptedInvitation(false);
-      setIsQuestionLocked(false);
       setNoClickCount(0);
       setSelectedPlace(null);
       setPlaceConfirmed(false);
@@ -199,7 +180,6 @@ export default function App() {
               isAccepted={acceptedInvitation}
               noClickCount={noClickCount}
               setNoClickCount={setNoClickCount}
-              onQuestionReady={(ready) => setIsQuestionLocked(ready)}
             />
 
             {/* Scene 5 & 6: YES celebration intro */}

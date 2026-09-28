@@ -81,7 +81,7 @@ export function SurpriseVisual({ gifSrc, title }) {
             <circle cx="160" cy="30" r="3" fill="#ec4899" className="animate-pulse" />
           </svg>
 
-          <span className="text-xs font-semibold tracking-wider text-pink-600 bg-white/70 backdrop-blur-md px-3 py-1 rounded-full border border-pink-200 shadow-sm mt-1">
+          <span className="font-handwritingPaper text-sm font-semibold text-pink-600 bg-white/70 backdrop-blur-md px-3 py-1 rounded-full border border-pink-200 shadow-sm mt-1">
             ✨ Pure Happiness ✨
           </span>
         </div>
