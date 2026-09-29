@@ -235,16 +235,13 @@ export default function LocationPicker({
 
       {/* Header */}
       <header className="relative z-10 flex flex-col items-center text-center max-w-xl mx-auto px-4">
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">
-          {ui.eyebrow}
-        </span>
         <h2
-          className="mb-1.5 mt-2 font-serif text-2xl sm:text-3xl font-bold text-burgundy-900"
+          className="mb-1.5 font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900"
           style={{ textWrap: 'balance' }}
         >
           {ui.heading} <span className="inline-block animate-bounce">{ui.headingHeart}</span>
         </h2>
-        <p className="text-xs sm:text-sm text-ink/70">
+        <p className="font-handwritingPaper text-lg sm:text-xl font-semibold text-burgundy-600">
           {isConfirmed ? ui.confirmedHint : ui.hint}
         </p>
       </header>
@@ -319,7 +316,7 @@ export default function LocationPicker({
 
           <div className="flex-1 flex justify-center">
             {isConfirmed ? (
-              <div className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-burgundy-200 bg-burgundy-50 px-6 sm:px-8 py-3 text-sm sm:text-base font-bold text-burgundy-800 shadow-sm animate-heartPop">
+              <div className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-burgundy-200 bg-burgundy-50 px-6 sm:px-8 py-3 text-base sm:text-lg font-handwritingPaper font-bold text-burgundy-800 shadow-sm animate-heartPop">
                 <Check className="h-5 w-5 text-burgundy-600" />
                 <span>{`${ui.lockedPrefix} ${selectedPlace || currentPlace.title} 💗`}</span>
               </div>
@@ -327,7 +324,7 @@ export default function LocationPicker({
               <button
                 type="button"
                 onClick={handleChooseDestination}
-                className="group w-full inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2.5 rounded-full bg-burgundy-900 hover:bg-burgundy-800 px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-amber-100 shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
+                className="group w-full inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2.5 rounded-full bg-burgundy-900 hover:bg-burgundy-800 px-6 sm:px-8 py-3.5 text-base sm:text-lg font-handwritingPaper font-bold text-amber-100 shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
               >
                 <Heart className="h-5 w-5 fill-rose-400 text-rose-400 transition-transform group-hover:scale-125 duration-300" />
                 <span>{ui.chooseButton}</span>

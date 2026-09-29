@@ -9,7 +9,7 @@ export const invitationConfig = {
 
   hero: {
     badge: "A Special Delivery Just For You ✨",
-    greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
+    greeting: "Hello My pwetty cutiee princess sassy",
     subtitle: "I made all of this just for you hehe...",
     scrollPrompt: "Scroll down to open your letter"
   },
@@ -35,7 +35,7 @@ export const invitationConfig = {
 
   letter: {
     tag: "Okay, I Wanna Tell You Something 💌",
-    greeting: "Hellooo my beautiful Sassy, my cutieeeeeee 💗",
+    greeting: "Hello My pwetty cutiee princess sassy",
     body: [
       "I don't know if I say this enough, but I really love spending time with you.",
       "I swear even doing random stupid stuff feels fun when it's with you wkwk.",
@@ -44,7 +44,7 @@ export const invitationConfig = {
       "We eat, jalan-jalan, take random photos, bully each other a little bit, and just have fun. Deal?",
       "I’ve already prepared everything here. There’s just one thing left…"
     ],
-    question: "Would you go on a date with me? 🥺💗",
+    question: "Would you go on a date with me?",
     subtext: "Soooo... what do you say?"
   },
 
@@ -68,6 +68,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/aquarium-date.webp",
       },
+      image: "/assets/places/aquarium-date.webp",
+      caption: "Underwater Realm",
       highlights: ["Manta Rays", "Glass Tunnel Walk", "Holding Hands"],
       book: {
         tag: "Underwater Realm",
@@ -89,6 +91,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/cinema-date.webp",
       },
+      image: "/assets/places/cinema-date.webp",
+      caption: "Cozy Screening",
       highlights: ["Caramel Popcorn", "Cozy Premiere Seats", "Post-Movie Chill"],
       book: {
         tag: "Cozy Screening",
@@ -110,6 +114,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/museum-date.webp",
       },
+      image: "/assets/places/museum-date.webp",
+      caption: "Art & History",
       highlights: ["Art Exhibits", "Quiet Walk", "Aesthetic Photos"],
       book: {
         tag: "Art & History",

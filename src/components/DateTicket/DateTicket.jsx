@@ -123,12 +123,11 @@ export default function DateTicket({
     >
       {/* Header */}
       <div className="text-center max-w-lg mx-auto relative z-10">
-        <p className="font-handwritingPaper text-xl text-burgundy-600 mb-1">{ui.handNote}</p>
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">{ui.eyebrow}</span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900 mb-1" style={{ textWrap: 'balance' }}>
+        <p className="font-handwritingPaper text-xl text-burgundy-600 mb-2">{ui.handNote}</p>
+        <h2 className="font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900 mb-1" style={{ textWrap: 'balance' }}>
           {ui.heading}
         </h2>
-        <p className="text-ink/70 text-sm sm:text-base font-serif italic">
+        <p className="font-handwritingPaper text-lg sm:text-xl font-semibold text-burgundy-600">
           {ui.subline}
         </p>
       </div>
@@ -151,12 +150,12 @@ export default function DateTicket({
         >
           {/* Postmark confirmation stamp */}
           <div className="absolute top-4 right-3 sm:top-6 sm:right-6 z-10 rotate-6 rounded-full border-2 border-dashed border-gold-500/50 px-3 py-1.5 text-center">
-            <span className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] text-gold-300">
+              <span className="ticket-data-label flex items-center justify-center gap-1 text-gold-300">
               <CheckCircleIcon size={12} weight="fill" aria-hidden="true" />
               {ui.stampConfirmed}
             </span>
             {postmarkDate && (
-              <span className="block text-[9px] font-semibold tracking-[0.1em] text-amber-200/80 mt-0.5 tabular-nums">
+              <span className="ticket-data-small block text-amber-200/80 mt-0.5 tabular-nums">
                 {postmarkDate}
               </span>
             )}
@@ -168,10 +167,10 @@ export default function DateTicket({
               <HeartIcon size={20} weight="fill" className="text-gold-300" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/80 block">
+              <span className="ticket-data-label block text-amber-200/80">
                 {ui.labelAdmit}
               </span>
-              <h3 className="font-serif font-bold text-lg sm:text-xl text-white tracking-tight leading-snug">
+              <h3 className="font-handwritingPaper font-bold text-lg sm:text-xl text-white leading-snug">
                 {ui.cardTitle}
               </h3>
             </div>
@@ -181,33 +180,33 @@ export default function DateTicket({
           <div className="py-6 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-5">
             <div className="flex flex-col flex-grow min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelDateWith}</span>
-                <p className="font-serif font-bold text-lg text-white">
+                <span className="ticket-data-label text-amber-200/80">{ui.labelDateWith}</span>
+                <p className="font-handwritingPaper font-bold text-lg text-white">
                   {config.recipientName || 'You'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelFrom}</span>
-                <p className="font-serif font-bold text-lg text-white">
+                <span className="ticket-data-label text-amber-200/80">{ui.labelFrom}</span>
+                <p className="font-handwritingPaper font-bold text-lg text-white">
                   {config.senderName || 'Me'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-gold-500/20 py-3">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelDestination}</span>
-                <p className="font-sans font-semibold text-base sm:text-lg text-gold-300 sm:text-right">
+                <span className="ticket-data-label text-amber-200/80">{ui.labelDestination}</span>
+                <p className="font-handwritingPaper font-semibold text-base sm:text-lg text-gold-300 sm:text-right">
                   {selectedPlace || 'Somewhere Special'}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 py-3">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-200/80">{ui.labelSchedule}</span>
+                <span className="ticket-data-label text-amber-200/80">{ui.labelSchedule}</span>
                 <div className="sm:text-right">
-                  <p className="font-sans font-semibold text-white text-sm sm:text-base">
+                  <p className="ticket-date-value font-handwritingPaper font-semibold text-white text-lg sm:text-xl tabular-nums">
                     {formattedDate || 'To be scheduled'}
                   </p>
-                  <span className="text-[11px] text-amber-200/70 font-medium">{ui.noteAllDay}</span>
+                  <span className="font-handwritingPaper text-sm text-amber-200/70 font-semibold">{ui.noteAllDay}</span>
                 </div>
               </div>
             </div>
@@ -223,7 +222,7 @@ export default function DateTicket({
 
           {/* Ticket Footer — perforation rule and sign-off */}
           <div className="pt-4 border-t border-dashed border-gold-500/30 flex items-center justify-between gap-3">
-            <span className="text-[10px] font-semibold tracking-[0.18em] text-amber-200/70 uppercase">
+            <span className="ticket-data-small text-amber-200/70 tabular-nums">
               {`${ui.footerFor} • ${(config.recipientName || 'You').toUpperCase()} • ${ui.footerOnly}`}
             </span>
             <span className="font-handwritingPaper text-lg text-gold-300">{ui.footerSignOff}</span>
@@ -244,10 +243,10 @@ export default function DateTicket({
         <button
           type="button"
           onClick={handleWhatsApp}
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-bold text-amber-100 text-base bg-burgundy-900 hover:bg-burgundy-800 border border-gold-300 shadow-lg active:scale-[0.96] transition-all duration-300 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
+          className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full font-handwritingPaper font-bold text-amber-100 text-base bg-burgundy-900 hover:bg-burgundy-800 border border-gold-300 shadow-lg active:scale-[0.96] transition-all duration-300 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
         >
           <WhatsappLogoIcon size={20} weight="fill" className="text-amber-100" aria-hidden="true" />
-          <span className="tracking-wide">{ui.btnWhatsapp}</span>
+          <span>{ui.btnWhatsapp}</span>
         </button>
 
         {/* 2. Secondary Row: Save Ticket & Add to Calendar */}
@@ -266,7 +265,7 @@ export default function DateTicket({
               aria-expanded={showExportMenu}
               aria-controls="date-ticket-export-menu"
               aria-haspopup="menu"
-              className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-full font-semibold text-burgundy-800 bg-white hover:bg-burgundy-50 border border-burgundy-200 shadow-sm active:scale-[0.96] transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50 ${
+              className={`w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-full font-handwritingPaper font-semibold text-burgundy-800 bg-white hover:bg-burgundy-50 border border-burgundy-200 shadow-sm active:scale-[0.96] transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50 ${
                 isExporting ? 'opacity-60 cursor-wait' : ''
               }`}
             >
@@ -280,13 +279,13 @@ export default function DateTicket({
                 role="alert"
                 className="mt-2 flex items-center justify-between gap-2 rounded-md border border-burgundy-200 bg-burgundy-50 px-3 py-1.5"
               >
-                <span className="text-xs font-semibold text-burgundy-800">
+                <span className="font-handwritingPaper text-sm font-semibold text-burgundy-800">
                   {ui.saveError}
                 </span>
                 <button
                   type="button"
                   onClick={exportError === 'pdf' ? handleSavePdf : handleSavePng}
-                  className="inline-flex items-center gap-1.5 rounded-md px-3 text-xs font-bold uppercase tracking-wider text-burgundy-800 underline underline-offset-4 decoration-burgundy-200 hover:text-burgundy-900 hover:decoration-burgundy-400 transition-colors cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
+                  className="inline-flex items-center gap-1.5 rounded-md px-3 font-handwritingPaper text-sm font-bold text-burgundy-800 underline underline-offset-4 decoration-burgundy-200 hover:text-burgundy-900 hover:decoration-burgundy-400 transition-colors cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
                 >
                   {ui.retry}
                 </button>
@@ -307,13 +306,13 @@ export default function DateTicket({
                   onClick={handleSavePng}
                   disabled={isExporting}
                   aria-disabled={isExporting}
-                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 disabled:hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
+                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 disabled:hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed font-handwritingPaper text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
                 >
                   <span className="flex items-center gap-2">
                     <DownloadIcon size={16} weight="regular" className="text-burgundy-400" aria-hidden="true" />
                     <span>{ui.btnSavePng}</span>
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-burgundy-100 text-burgundy-800 px-2 py-0.5 rounded-full">
+                  <span className="font-handwritingPaper text-xs font-semibold bg-burgundy-100 text-burgundy-800 px-2 py-0.5 rounded-full">
                     {ui.recommended}
                   </span>
                 </button>
@@ -324,7 +323,7 @@ export default function DateTicket({
                   onClick={handleSavePdf}
                   disabled={isExporting}
                   aria-disabled={isExporting}
-                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 disabled:hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold text-burgundy-900 flex items-center gap-2 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
+                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 disabled:hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed font-handwritingPaper text-sm font-semibold text-burgundy-900 flex items-center gap-2 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
                 >
                   <FilePdfIcon size={16} weight="regular" className="text-burgundy-400" aria-hidden="true" />
                   <span>{ui.btnSavePdf}</span>
@@ -345,7 +344,7 @@ export default function DateTicket({
               aria-expanded={showCalendarMenu}
               aria-controls="date-ticket-calendar-menu"
               aria-haspopup="menu"
-              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-full font-semibold text-burgundy-800 bg-white hover:bg-burgundy-50 border border-burgundy-200 shadow-sm active:scale-[0.96] transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
+              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-full font-handwritingPaper font-semibold text-burgundy-800 bg-white hover:bg-burgundy-50 border border-burgundy-200 shadow-sm active:scale-[0.96] transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
             >
               <CalendarIcon size={16} weight="regular" className="text-burgundy-600" aria-hidden="true" />
               <span>{ui.btnCalendar}</span>
@@ -363,7 +362,7 @@ export default function DateTicket({
                   type="button"
                   role="menuitem"
                   onClick={handleGoogleCalendar}
-                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
+                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 font-handwritingPaper text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
                 >
                   <span>{ui.btnGoogleCal}</span>
                   <ArrowSquareOutIcon size={16} weight="regular" className="text-burgundy-400" aria-hidden="true" />
@@ -373,7 +372,7 @@ export default function DateTicket({
                   type="button"
                   role="menuitem"
                   onClick={handleIcsDownload}
-                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
+                  className="w-full text-left px-4 py-2.5 rounded-md hover:bg-burgundy-50 font-handwritingPaper text-sm font-semibold text-burgundy-900 flex items-center justify-between cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ivory-50"
                 >
                   <span>{ui.btnIcs}</span>
                   <DownloadIcon size={16} weight="regular" className="text-burgundy-400" aria-hidden="true" />
@@ -390,7 +389,7 @@ export default function DateTicket({
             sound.playClick();
             onReset();
           }}
-          className="mt-2 text-xs font-semibold text-burgundy-600 hover:text-burgundy-800 underline underline-offset-4 decoration-burgundy-200 transition-colors flex items-center justify-center gap-1.5 py-2 cursor-pointer min-h-[44px] rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
+          className="mt-2 font-handwritingPaper text-sm font-semibold text-burgundy-600 hover:text-burgundy-800 underline underline-offset-4 decoration-burgundy-200 transition-colors flex items-center justify-center gap-1.5 py-2 cursor-pointer min-h-[44px] rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-romantic-50"
         >
           <ArrowCounterClockwiseIcon size={14} weight="regular" aria-hidden="true" />
           <span>{ui.btnReplay}</span>

@@ -1,8 +1,11 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { resolveAssetUrl } from '../../utils/assets';
+import { resolveBookPhotoSlot } from './bookPhoto.js';
+import MuseumLogo from '../PlacePreviews/MuseumLogo';
+import aquariumShark from '../PlacePreviews/aquarium-shark.svg';
 
-// Color themes only — book copy (tag/spine/chapter/quote/badge/emoji) lives on
-// place.book in src/config/config.js.
+// Optional page photos/captions live on each place; printed book details live on place.book.
 const PLACE_THEMES = {
   aquarium: {
     c1: '#00c6ff',
@@ -37,8 +40,9 @@ const BookCard = forwardRef(function BookCard(
   const badge = place.badge || book.badge || place.emoji || '💖';
   const emoji = place.coverEmoji || book.emoji || place.emoji || '✨';
   const quote = place.quote || book.quote || place.copy;
-  const chapter = place.chapter || book.chapter || `Chapter ${String(index + 1).padStart(2, '0')}`;
-  const author = place.author || 'a date story · est. us';
+  const photo = resolveBookPhotoSlot(place.image, place.caption);
+  const [failedPhoto, setFailedPhoto] = useState(null);
+  const photoSrc = photo.src && failedPhoto !== photo.src ? resolveAssetUrl(photo.src) : null;
 
   const handleMouseEnter = (e) => {
     if (isActive || isConfirmed) return;
@@ -86,9 +90,33 @@ const BookCard = forwardRef(function BookCard(
       {/* Book Pages */}
       <div className="book-pages destination-book__pages">
         <div className="page-content destination-book__content">
-          <div className="page-chapter destination-book__chapter">{chapter}</div>
           <h2 className="page-title destination-book__title">{place.title}</h2>
           <p className="page-text destination-book__copy">{place.copy}</p>
+          <figure className="destination-book__photo" aria-label={`${place.title} photo`}>
+            <span className="washi-tape destination-book__photo-tape destination-book__photo-tape--left" aria-hidden="true" />
+            <span className="washi-tape destination-book__photo-tape destination-book__photo-tape--right" aria-hidden="true" />
+            <div className="destination-book__photo-view">
+              <div
+                className="destination-book__photo-placeholder"
+                role={photoSrc ? undefined : 'img'}
+                aria-label={photoSrc ? undefined : 'Photo placeholder only; no image supplied'}
+                aria-hidden={photoSrc ? 'true' : undefined}
+              >
+                <span>[PHOTO]</span>
+              </div>
+              {photoSrc && (
+                <img
+                  className="destination-book__photo-image"
+                  src={photoSrc}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => setFailedPhoto(photo.src)}
+                />
+              )}
+            </div>
+            <figcaption className="destination-book__photo-caption">{photo.caption}</figcaption>
+          </figure>
           {place.highlights && place.highlights.length > 0 && (
             <div className="page-chips destination-book__chips destination-book__highlights">
               {place.highlights.map((highlight) => (
@@ -114,16 +142,33 @@ const BookCard = forwardRef(function BookCard(
             <span>{spine}</span>
           </div>
           <div className="cover-deco destination-book__deco" />
-          <div className="cover-emoji destination-book__emoji">{emoji}</div>
+          <div className="cover-emoji destination-book__emoji">
+            {place.id === 'aquarium'
+              ? <img src={aquariumShark} alt="" className="destination-book__shark aquarium-shark" />
+              : place.id === 'museum'
+              ? <MuseumLogo className="destination-book__museum-logo" wall="#4a2c1d" />
+              : emoji}
+          </div>
           <div className="cover-title destination-book__cover-title">{place.title}</div>
-          <div className="cover-author destination-book__author">{author}</div>
           <div className="card-badge destination-book__badge">{badge}</div>
           <div className="card-tag destination-book__tag">{tag}</div>
         </div>
 
         {/* Cover Back */}
-        <div className="cover-face cover-back destination-book__cover-back">
-          <div className="in-emoji destination-book__in-emoji">{badge}</div>
+          <div className="cover-face cover-back destination-book__cover-back">
+            <div
+              className={`in-emoji destination-book__in-emoji ${
+                place.id === 'aquarium' ? 'flex w-full justify-center' : ''
+              } ${place.id === 'cinema' ? 'destination-book__in-emoji--cinema' : ''}`}
+            >
+            {place.id === 'aquarium'
+              ? <img src={aquariumShark} alt="" className="destination-book__in-shark aquarium-shark" />
+              : place.id === 'cinema'
+                ? emoji
+              : place.id === 'museum'
+                ? <MuseumLogo className="destination-book__in-museum-logo" wall="#B9803F" />
+                : badge}
+            </div>
           <p>{quote}</p>
         </div>
       </div>

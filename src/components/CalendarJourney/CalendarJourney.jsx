@@ -110,9 +110,8 @@ export default function CalendarJourney({
     >
       {/* Section Header */}
       <div className="text-center space-y-2 relative z-10">
-        <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase font-bold">{ui.eyebrow}</span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-burgundy-900">{ui.heading}</h2>
-        <p className="text-xs sm:text-sm text-ink/70">
+        <h2 className="font-handwritingPaper text-[clamp(2.25rem,5.5vw,3rem)] font-bold text-burgundy-900">{ui.heading}</h2>
+        <p className="font-handwritingPaper text-lg sm:text-xl font-semibold text-burgundy-600">
           {isLocked ? ui.confirmedHint : config.calendar.subtitle}
         </p>
       </div>
@@ -139,10 +138,10 @@ export default function CalendarJourney({
             </button>
 
             <div className="text-center">
-              <h3 className="font-serif font-bold text-xl text-burgundy-900">
+              <h3 className="font-handwritingPaper text-3xl sm:text-4xl font-bold leading-none text-burgundy-900">
                 {MONTH_NAMES[activeMonth]}
               </h3>
-              <span className="text-xs font-mono tracking-widest text-burgundy-600 uppercase">
+              <span className="font-[Cormorant_Garamond] text-xs tabular-nums tracking-widest text-burgundy-600 uppercase">
                 {targetYear}
               </span>
             </div>
@@ -164,7 +163,7 @@ export default function CalendarJourney({
           {/* Days of Week Header */}
           <div className="grid grid-cols-7 gap-1 text-center mb-3">
             {DAYS_OF_WEEK.map((d, i) => (
-              <span key={i} className="text-[10px] font-mono font-bold text-burgundy-600 uppercase py-1">
+              <span key={i} className="font-[Cormorant_Garamond] text-[10px] font-bold text-burgundy-600 uppercase py-1">
                 {d}
               </span>
             ))}
@@ -184,7 +183,7 @@ export default function CalendarJourney({
                 return (
                   <div
                     key={item.dateString}
-                    className="w-full aspect-square flex items-center justify-center rounded-xl text-ink/25 text-sm font-medium opacity-60 cursor-not-allowed select-none"
+                    className="w-full aspect-square flex items-center justify-center rounded-xl font-handwritingPaper tabular-nums text-burgundy-300 text-sm font-medium opacity-60 cursor-not-allowed select-none"
                     title="Past date (unavailable)"
                   >
                     {item.day}
@@ -203,10 +202,10 @@ export default function CalendarJourney({
                   } ${
                     isSelected
                       ? 'selected bg-burgundy-50 text-burgundy-900 font-bold scale-105 z-10'
-                      : 'bg-white/60 hover:bg-burgundy-50/80 text-ink border border-burgundy-200/70 active:scale-95'
+                      : 'bg-white/60 hover:bg-burgundy-50/80 text-burgundy-800 border border-burgundy-200/70 active:scale-95'
                   }`}
                 >
-                  <span>{item.day}</span>
+                  <span className="font-handwritingPaper tabular-nums">{item.day}</span>
                   {isSelected && <span className="text-[9px] -mt-1">💗</span>}
                 </button>
               );
@@ -219,26 +218,26 @@ export default function CalendarJourney({
           <div className="mt-6 flex flex-col items-center animate-heartPop">
             <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-burgundy-50 border border-burgundy-200 shadow-sm text-burgundy-800 font-bold text-sm">
               <CalendarIcon className="w-4 h-4 text-burgundy-600" />
-              <span>{formattedTempDate} 💗</span>
+              <span className="font-handwritingPaper text-base sm:text-lg tabular-nums">{formattedTempDate} 💗</span>
             </div>
 
             {/* Destination + Date Combined Summary */}
             {selectedPlace && (
-              <p className="text-xs font-semibold text-ink/50 mt-2">
-                {ui.destinationLabel} <span className="text-ink">{selectedPlace}</span>
+              <p className="mt-2 font-handwritingPaper text-sm sm:text-base font-semibold text-burgundy-600">
+                {ui.destinationLabel} <span className="font-bold text-burgundy-900">{selectedPlace}</span>
               </p>
             )}
 
             {/* Required Date Confirmation CTA */}
             {isLocked ? (
-              <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-bold text-base shadow-sm">
+              <div className="mt-4 inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-burgundy-50 border border-burgundy-200 text-burgundy-800 font-handwritingPaper font-bold text-lg sm:text-xl shadow-sm">
                 <Check className="w-5 h-5 text-burgundy-600" />
-                <span>{`${ui.lockedPrefix} ${formattedTempDate} 💗`}</span>
+                <span className="font-handwritingPaper tabular-nums">{`${ui.lockedPrefix} ${formattedTempDate} 💗`}</span>
               </div>
             ) : (
               <button
                 onClick={handleConfirm}
-                className="group mt-4 inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-bold text-sm rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
+                className="group mt-4 inline-flex items-center gap-2 px-8 py-3.5 bg-burgundy-900 hover:bg-burgundy-800 text-amber-100 font-handwritingPaper font-bold text-lg sm:text-xl rounded-full shadow-lg transform hover:scale-105 active:scale-95 transition duration-200 border border-gold-300 cursor-pointer min-h-[44px]"
               >
                 <Heart className="w-4 h-4 fill-rose-400 text-rose-400 group-hover:scale-125 transition-transform" />
                 <span>{ui.chooseButton}</span>
