@@ -68,6 +68,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/aquarium-date.webp",
       },
+      image: "/assets/places/aquarium-date.webp",
+      caption: "Underwater Realm",
       highlights: ["Manta Rays", "Glass Tunnel Walk", "Holding Hands"],
       book: {
         tag: "Underwater Realm",
@@ -89,6 +91,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/cinema-date.webp",
       },
+      image: "/assets/places/cinema-date.webp",
+      caption: "Cozy Screening",
       highlights: ["Caramel Popcorn", "Cozy Premiere Seats", "Post-Movie Chill"],
       book: {
         tag: "Cozy Screening",
@@ -110,6 +114,8 @@ export const invitationConfig = {
         type: "image",
         src: "/assets/places/museum-date.webp",
       },
+      image: "/assets/places/museum-date.webp",
+      caption: "Art & History",
       highlights: ["Art Exhibits", "Quiet Walk", "Aesthetic Photos"],
       book: {
         tag: "Art & History",

@@ -1,5 +1,7 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { resolveAssetUrl } from '../../utils/assets';
+import MuseumLogo from './MuseumLogo';
+import aquariumShark from './aquarium-shark.svg';
 
 /**
  * PlaceVisual:
@@ -25,27 +27,14 @@ export function PlaceVisual({ place, isActive }) {
         return (
           <div className="relative w-full h-full bg-gradient-to-br from-sky-900 via-blue-800 to-indigo-950 flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-400/30 via-transparent to-transparent animate-pulse" />
-            <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" className="w-full h-full text-cyan-200">
-              <defs>
-                <linearGradient id="waterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#818cf8" stopOpacity="0.4" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M160 80 Q190 70 230 85 Q190 100 160 120 Q130 100 90 85 Q130 70 160 80 Z"
-                fill="url(#waterGrad)"
-                className="animate-float"
-              />
-              <path d="M160 120 Q160 145 163 160" stroke="#bae6fd" strokeWidth="2.5" fill="none" />
-              <circle cx="90" cy="130" r="14" fill="#fb923c" />
-              <path d="M85 122 Q95 130 85 138" stroke="#ffffff" strokeWidth="3" fill="none" />
+            <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" className="absolute inset-0 h-full w-full">
               <circle cx="230" cy="60" r="5" fill="#e0f2fe" opacity="0.6" className="animate-bounce" />
               <circle cx="240" cy="45" r="8" fill="#e0f2fe" opacity="0.5" className="animate-floatSlow" />
               <circle cx="80" cy="50" r="6" fill="#e0f2fe" opacity="0.7" className="animate-float" />
               <path d="M20 200 Q30 160 45 200 Q60 150 75 200" fill="#f472b6" opacity="0.4" />
               <path d="M260 200 Q280 155 295 200 Q305 165 315 200" fill="#a78bfa" opacity="0.4" />
             </svg>
+            <img src={aquariumShark} alt="" className="aquarium-shark relative z-10 h-auto w-[68.834%] max-w-[255px]" />
           </div>
         );
 
@@ -74,25 +63,7 @@ export function PlaceVisual({ place, isActive }) {
         return (
           <div className="relative w-full h-full bg-gradient-to-br from-amber-950 via-stone-900 to-amber-900 flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent animate-pulse" />
-            <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" className="w-full h-full text-amber-200">
-              <defs>
-                <linearGradient id="museumPillars" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#fde68a" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#d97706" stopOpacity="0.4" />
-                </linearGradient>
-              </defs>
-              <polygon points="160,50 65,82 255,82" fill="url(#museumPillars)" />
-              <rect x="75" y="82" width="170" height="8" rx="2" fill="#fcd34d" />
-              <rect x="90" y="90" width="14" height="62" rx="2" fill="#fed7aa" />
-              <rect x="130" y="90" width="14" height="62" rx="2" fill="#fed7aa" />
-              <rect x="176" y="90" width="14" height="62" rx="2" fill="#fed7aa" />
-              <rect x="216" y="90" width="14" height="62" rx="2" fill="#fed7aa" />
-              <rect x="70" y="152" width="180" height="12" rx="2" fill="#fcd34d" />
-              <rect x="140" y="104" width="40" height="34" rx="3" stroke="#f59e0b" strokeWidth="2" fill="#78350f" opacity="0.8" />
-              <circle cx="160" cy="120" r="8" fill="#fbbf24" opacity="0.9" className="animate-pulse" />
-              <circle cx="55" cy="65" r="4" fill="#fef08a" opacity="0.6" className="animate-floatSlow" />
-              <circle cx="265" cy="68" r="5" fill="#fef08a" opacity="0.5" className="animate-float" />
-            </svg>
+            <MuseumLogo className="relative z-10 h-[80%] w-[62%] max-w-[203px]" wall="#B9803F" />
           </div>
         );
 

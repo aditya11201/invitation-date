@@ -3,6 +3,12 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { resolveFallbackSealLabel, isFallbackSealDisabled } from './preloaderStages.js';
 import {
+  getStampFlapPose,
+  scheduleCoverWriting,
+  smoothstep,
+  STAMP_FLAP_DURATION_MS,
+} from './coverWriting.js';
+import {
   createEnvelopeScene,
   getEnvelopeCameraDistance,
   DRAG_THRESHOLD_PX,
@@ -75,8 +81,252 @@ function traceRoundRect(context, x, y, width, height, radius) {
   context.closePath();
 }
 
-function drawCoverStatic(context, canvas, content) {
-  const { year } = content;
+const STAMP_VIEWBOX_WIDTH = 448;
+const STAMP_VIEWBOX_HEIGHT = 560;
+const FOREVER_STAMP_WIDTH = 200;
+const FOREVER_STAMP_HEIGHT = 240;
+
+const STAMP_PATH_DATA = {
+  farWing: 'M266 250 C252 210 230 152 200 96 Q242 132 252 170 Q258 202 262 232 Q265 248 268 252 Z',
+  farFeathers: 'M262 244 Q250 198 233 140',
+  tail: 'M222 290 C178 290 134 304 92 326 Q84 356 102 372 Q102 400 128 406 Q168 396 214 312 Z',
+  tailFeathers: 'M220 292 Q162 300 106 320 M218 298 Q164 326 112 366 M216 304 Q172 344 138 396',
+  bodyAndHead: `M252 184 C258 172 274 167 286 175 C294 180 299 188 301 198
+                       C302 208 298 218 290 226 C298 236 308 250 311 266
+                       C313 284 304 300 288 310 C268 322 236 328 208 322
+                       C184 316 166 306 154 292 C150 282 154 270 164 262
+                       C180 248 208 238 236 232 C244 222 246 200 252 184 Z`,
+  nearWing: 'M258 252 C240 216 210 156 152 98 Q146 130 166 158 Q172 196 198 224 Q210 258 244 268 Z',
+  nearFeathers: 'M252 248 Q206 206 172 152 M254 252 Q228 240 202 222',
+  beak: 'M294 199 C310 204 328 216 340 233 C322 232 304 226 292 220 Z',
+  envelopeFlap: 'M0 0 L88 0 44 34 Z',
+  heart: `M44 61 C41 58 31 51.5 31 44.5 C31 38.8 34.7 35 39.5 35 C41.8 35 44 36.7 44 38.8
+                            C44 36.7 46.2 35 48.5 35 C53.3 35 57 38.8 57 44.5 C57 51.5 47 58 44 61 Z`,
+};
+
+function createStampNoiseTile() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 32;
+  const context = canvas.getContext('2d');
+  const image = context.createImageData(canvas.width, canvas.height);
+  let seed = 7;
+
+  for (let index = 0; index < image.data.length; index += 4) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const value = seed >>> 24;
+    image.data[index] = value;
+    image.data[index + 1] = value;
+    image.data[index + 2] = value;
+    image.data[index + 3] = 255;
+  }
+
+  context.putImageData(image, 0, 0);
+  return canvas;
+}
+
+function createForeverStampArtwork() {
+  const canvas = document.createElement('canvas');
+  canvas.width = STAMP_VIEWBOX_WIDTH;
+  canvas.height = STAMP_VIEWBOX_HEIGHT;
+  const context = canvas.getContext('2d');
+  const paths = Object.fromEntries(
+    Object.entries(STAMP_PATH_DATA).map(([key, data]) => [key, new Path2D(data)]),
+  );
+
+  return { canvas, context, paths, noiseTile: createStampNoiseTile() };
+}
+
+function drawStampBackground(context) {
+  const centerX = STAMP_VIEWBOX_WIDTH * 0.5;
+  const centerY = STAMP_VIEWBOX_HEIGHT * 0.38;
+  const radiusX = STAMP_VIEWBOX_WIDTH * 0.78;
+  const radiusYScale = STAMP_VIEWBOX_HEIGHT / STAMP_VIEWBOX_WIDTH;
+  context.save();
+  context.translate(0, centerY);
+  context.scale(1, radiusYScale);
+  context.translate(0, -centerY);
+  const redGrad = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radiusX);
+  redGrad.addColorStop(0, '#C14A5A');
+  redGrad.addColorStop(0.55, '#B83A4B');
+  redGrad.addColorStop(1, '#7A2030');
+  context.fillStyle = redGrad;
+  const fillTop = centerY - centerY / radiusYScale;
+  const fillBottom = centerY + (STAMP_VIEWBOX_HEIGHT - centerY) / radiusYScale;
+  context.fillRect(0, fillTop, STAMP_VIEWBOX_WIDTH, fillBottom - fillTop);
+  context.restore();
+}
+
+function drawStampGrain(context, noiseTile) {
+  context.save();
+  context.globalAlpha = 0.08;
+  context.fillStyle = context.createPattern(noiseTile, 'repeat');
+  context.fillRect(0, 0, STAMP_VIEWBOX_WIDTH, STAMP_VIEWBOX_HEIGHT);
+  context.restore();
+}
+
+function drawStampWing(context, path, feathers, pivotX, pivotY, angleDegrees, fill, featherColor, featherWidth) {
+  context.save();
+  context.translate(pivotX, pivotY);
+  context.rotate((angleDegrees * Math.PI) / 180);
+  context.translate(-pivotX, -pivotY);
+  context.fillStyle = fill;
+  context.fill(path);
+  context.strokeStyle = featherColor;
+  context.lineWidth = featherWidth;
+  context.lineCap = 'round';
+  context.stroke(feathers);
+  context.restore();
+}
+
+function drawStampDove(context, paths, pose) {
+  context.save();
+  context.translate(0, 28 + (pose?.doveBobY || 0));
+
+  drawStampWing(
+    context,
+    paths.farWing,
+    paths.farFeathers,
+    266,
+    250,
+    pose?.farWingRotationDegrees || 0,
+    '#f6c4cf',
+    '#7A2030',
+    2.2,
+  );
+
+  context.fillStyle = '#fff';
+  context.fill(paths.tail);
+  context.strokeStyle = '#c2231e';
+  context.lineWidth = 2.6;
+  context.lineCap = 'round';
+  context.stroke(paths.tailFeathers);
+
+  context.fillStyle = '#fff';
+  context.fill(paths.bodyAndHead);
+
+  drawStampWing(
+    context,
+    paths.nearWing,
+    paths.nearFeathers,
+    250,
+    258,
+    pose?.nearWingRotationDegrees || 0,
+    '#fff',
+    '#c2231e',
+    2.6,
+  );
+
+  context.fillStyle = '#c2231e';
+  context.beginPath();
+  context.arc(284, 195, 3.6, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = '#fff';
+  context.beginPath();
+  context.arc(285.4, 193.6, 1.15, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = '#f294ac';
+  context.fill(paths.beak);
+
+  context.save();
+  context.translate(316, 226);
+  context.rotate((9 * Math.PI) / 180);
+  context.translate(24, 3);
+  context.rotate(((pose?.envelopeSwingDegrees || 0) * Math.PI) / 180);
+  context.translate(-24, -3);
+  context.fillStyle = '#f8b6c6';
+  context.beginPath();
+  traceRoundRect(context, 0, 0, 88, 66, 4);
+  context.fill();
+  context.fillStyle = '#f091ac';
+  context.strokeStyle = '#f091ac';
+  context.lineWidth = 4;
+  context.lineJoin = 'round';
+  context.fill(paths.envelopeFlap);
+  context.stroke(paths.envelopeFlap);
+  context.fillStyle = '#c2231e';
+  context.fill(paths.heart);
+  context.restore();
+  context.restore();
+}
+
+function drawTrackedStampText(context, text, rightX, y, tracking) {
+  context.save();
+  context.textAlign = 'right';
+  if (typeof context.letterSpacing === 'string') {
+    context.letterSpacing = `${tracking}px`;
+    context.fillText(text, rightX, y);
+    context.restore();
+    return;
+  }
+
+  const letters = Array.from(text);
+  const widths = letters.map((letter) => context.measureText(letter).width);
+  const startX = rightX - context.measureText(text).width - tracking * (letters.length - 1);
+  context.textAlign = 'left';
+  letters.forEach((letter, index) => {
+    const prefix = index === 0
+      ? 0
+      : context.measureText(text.slice(0, index + 1)).width - widths[index];
+    context.fillText(letter, startX + prefix + tracking * index, y);
+  });
+  context.restore();
+}
+
+function drawStampText(context) {
+  context.fillStyle = '#fff';
+  context.textBaseline = 'alphabetic';
+  context.save();
+  context.translate(38, 84);
+  context.rotate((-4 * Math.PI) / 180);
+  context.font = "600 47px 'Caveat', cursive";
+  context.textAlign = 'left';
+  context.fillText('forever', 0, 0);
+  context.restore();
+
+  context.font = "600 26px 'Plus Jakarta Sans', sans-serif";
+  drawTrackedStampText(context, 'USA', 418, 506, 4);
+  context.font = "400 16px 'Plus Jakarta Sans', sans-serif";
+  drawTrackedStampText(context, '2024', 418, 531, 3.5);
+}
+
+function punchStampPerforations(context) {
+  context.save();
+  context.globalCompositeOperation = 'destination-out';
+  const punch = (x, y) => {
+    context.beginPath();
+    context.arc(x, y, 6, 0, Math.PI * 2);
+    context.fill();
+  };
+  for (let x = 0; x <= STAMP_VIEWBOX_WIDTH; x += 16) {
+    punch(x, 0);
+    punch(x, STAMP_VIEWBOX_HEIGHT);
+  }
+  for (let y = 0; y <= STAMP_VIEWBOX_HEIGHT; y += 16) {
+    punch(0, y);
+    punch(STAMP_VIEWBOX_WIDTH, y);
+  }
+  context.restore();
+}
+
+function drawForeverStamp(context, canvas, artwork, pose = null) {
+  const stampContext = artwork.context;
+  stampContext.clearRect(0, 0, STAMP_VIEWBOX_WIDTH, STAMP_VIEWBOX_HEIGHT);
+  drawStampBackground(stampContext);
+  drawStampDove(stampContext, artwork.paths, pose);
+  drawStampText(stampContext);
+  drawStampGrain(stampContext, artwork.noiseTile);
+  punchStampPerforations(stampContext);
+
+  const scale = Math.min(FOREVER_STAMP_WIDTH / STAMP_VIEWBOX_WIDTH, FOREVER_STAMP_HEIGHT / STAMP_VIEWBOX_HEIGHT);
+  const width = STAMP_VIEWBOX_WIDTH * scale;
+  const height = STAMP_VIEWBOX_HEIGHT * scale;
+  const x = canvas.width - 280 + (FOREVER_STAMP_WIDTH - width) / 2;
+  context.drawImage(artwork.canvas, x, 80, width, height);
+}
+
+function drawCoverStatic(context, canvas, content, stampArtwork, stampPose = null) {
 
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = '#ec4899';
@@ -90,14 +340,7 @@ function drawCoverStatic(context, canvas, content) {
   context.lineWidth = 3.5;
   context.strokeRect(56, 56, canvas.width - 112, canvas.height - 112);
 
-  // Stamp & Postmark
-  context.fillStyle = '#fcfbf7';
-  context.fillRect(canvas.width - 280, 80, 200, 240);
-  context.fillStyle = '#db2777';
-  context.font = "bold 40px 'Plus Jakarta Sans', sans-serif";
-  context.textAlign = 'center';
-  context.fillText('VIP PASS', canvas.width - 180, 180);
-  context.fillText(String(year || 2026), canvas.width - 180, 240);
+  drawForeverStamp(context, canvas, stampArtwork, stampPose);
 }
 
 /** Draws `charCount` characters of a line, returns the pen-tip position. */
@@ -110,88 +353,187 @@ function drawCoverTextLine(context, line, charCount) {
   return { x: line.x + context.measureText(partial).width + 6, y: line.y };
 }
 
-function drawCoverCanvas(context, canvas, content) {
-  drawCoverStatic(context, canvas, content);
+function drawCoverCanvas(context, canvas, content, stampArtwork, stampPose = null) {
+  drawCoverStatic(context, canvas, content, stampArtwork, stampPose);
   getCoverTextLines(content).forEach((line) => {
     drawCoverTextLine(context, line, line.segments.length);
   });
 }
 
-/**
- * Flat stylized hand + pencil at the pen tip. Pencil tip touches (x, y),
- * barrel leaning at −50°, small rounded mitt gripping it.
- */
-function drawWritingHand(context, x, y) {
+const COVER_WRITING_MS = 2500;
+const COVER_LINE_TRAVEL_MS = 160;
+const COVER_PENCIL_WIDTH = 40;
+const COVER_PENCIL_HEIGHT = 216;
+// The SVG nib points down. A 126° nib angle becomes a +36° canvas rotation,
+// placing the barrel up-right from the planted tip (about 36° off vertical).
+const COVER_PENCIL_BASE_ANGLE = Math.PI * 0.7;
+const COVER_PENCIL_WOBBLE = (2.5 * Math.PI) / 180;
+const COVER_PENCIL_STRAIGHTEN = (6 * Math.PI) / 180;
+const COVER_PENCIL_LIFT_ROTATION = (10 * Math.PI) / 180;
+const COVER_PENCIL_LIFT_HEIGHT = 40;
+
+function createWritingPencilSprite() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 96;
+  canvas.height = 520;
+  const context = canvas.getContext('2d');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="260" viewBox="0 0 48 260">
+    <defs>
+      <linearGradient id="silver-ferrule" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#837776"/>
+        <stop offset=".22" stop-color="#c9c3c1"/>
+        <stop offset=".5" stop-color="#ffffff"/>
+        <stop offset=".78" stop-color="#c9c3c1"/>
+        <stop offset="1" stop-color="#837776"/>
+      </linearGradient>
+      <linearGradient id="yellow-facets" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#a87428"/>
+        <stop offset=".2" stop-color="#f3c64d"/>
+        <stop offset=".5" stop-color="#fff0a2"/>
+        <stop offset=".8" stop-color="#f3c64d"/>
+        <stop offset="1" stop-color="#a87428"/>
+      </linearGradient>
+    </defs>
+    <path d="M16 60h16l3 7v121l-5 9H18l-5-9V67z" fill="url(#yellow-facets)" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M18 69v113M30 69v113" fill="none" stroke="#a87428" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M24 68v123" fill="none" stroke="#fff0a2" stroke-width="4" stroke-linecap="round"/>
+    <path d="M13 47h22v19H13z" fill="url(#silver-ferrule)" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M17 54h14M17 60h14" fill="none" stroke="#837776" stroke-width="2" stroke-linecap="round"/>
+    <path d="M13 188h22l-11 49z" fill="#e9c98b" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M17 194c3 10 4 23 6 38M31 194c-3 10-4 23-6 38" fill="none" stroke="#a87428" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M20 229h8l-4 29z" fill="#212121" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M13 49V23c0-8 5-13 11-13s11 5 11 13v26z" fill="#e98f9d" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
+    <ellipse cx="20" cy="22" rx="2.5" ry="5" fill="#ffffff" opacity=".9"/>
+  </svg>`;
+  const image = new Image();
+  const ready = new Promise((resolve) => {
+    image.onload = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(true);
+    };
+    image.onerror = () => resolve(false);
+  });
+  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+  return { canvas, ready };
+}
+
+/** Draws the pencil with its graphite tip at the measured cover-text point. */
+function drawWritingHand(context, sprite, { point, angle = COVER_PENCIL_BASE_ANGLE, pressure = 0.8, lift = 0, press = 0 }) {
+  if (!sprite || !point) return;
+
+  const weight = Math.min(1, Math.max(0, pressure));
+  const raised = Math.min(1, Math.max(0, lift));
   context.save();
-  context.translate(x, y);
-  context.rotate(-50 * (Math.PI / 180));
-
-  // Graphite tip.
-  context.fillStyle = '#3f3a36';
+  context.translate(point.x + 30, point.y + 6);
+  const shadowScale = 1 + raised * 0.5;
+  context.scale(shadowScale, shadowScale);
+  const shadow = context.createRadialGradient(0, 0, 0, 0, 0, 18);
+  shadow.addColorStop(0, `rgba(74,64,56,${0.13 * (1 - raised)})`);
+  shadow.addColorStop(1, 'rgba(74,64,56,0)');
+  context.fillStyle = shadow;
   context.beginPath();
-  context.moveTo(0, 0);
-  context.lineTo(7, -16);
-  context.lineTo(-7, -16);
-  context.closePath();
+  context.ellipse(0, 0, 15, 5, 0, 0, Math.PI * 2);
   context.fill();
+  context.restore();
 
-  // Gold barrel.
-  context.fillStyle = '#D4A373';
-  context.fillRect(-7, -112, 14, 96);
-
-  // Ferrule + eraser stripe.
-  context.fillStyle = '#b76e79';
-  context.fillRect(-7, -116, 14, 5);
-  context.fillStyle = '#e98980';
-  context.fillRect(-7, -126, 14, 10);
-
-  // Soft rounded mitt gripping the barrel.
-  context.fillStyle = 'rgba(252, 228, 232, 0.95)';
-  context.strokeStyle = 'rgba(122, 32, 48, 0.35)';
-  context.lineWidth = 3;
-  context.beginPath();
-  traceRoundRect(context, -15, -92, 32, 54, 16);
-  context.fill();
-  context.stroke();
-  context.beginPath();
-  traceRoundRect(context, -1, -46, 17, 28, 9);
-  context.fill();
-  context.stroke();
-
+  context.save();
+  context.translate(point.x, point.y + press * 1.5);
+  context.rotate(angle - Math.PI / 2);
+  const scale = 0.98 + weight * 0.035;
+  context.scale(scale, scale);
+  context.drawImage(sprite, -COVER_PENCIL_WIDTH / 2, -COVER_PENCIL_HEIGHT, COVER_PENCIL_WIDTH, COVER_PENCIL_HEIGHT);
   context.restore();
 }
 
-const COVER_WRITING_MS = 2500;
-
 /**
- * Reveals the four cover text lines character-by-character over ~2.5s with
- * the hand following the pen tip. Runs its own rAF loop for the writing
- * window only, then stops. Returns a cancel function.
+ * Reveals the four cover lines character-by-character over 2.5s, lifting and
+ * travelling between baselines. The rAF loop stops on its final ink frame.
  */
-function startCoverWriting({ context, canvas, content, texture, onComplete }) {
+function startCoverWriting({ context, canvas, content, texture, pencilSprite, stampArtwork, onComplete }) {
   const lines = getCoverTextLines(content);
-  const totalChars = lines.reduce((sum, line) => sum + line.segments.length, 0) || 1;
+  const lineLengths = lines.map((line) => {
+    context.font = line.font;
+    return context.measureText(line.text).width;
+  });
+  const schedule = scheduleCoverWriting(
+    lineLengths,
+    COVER_WRITING_MS,
+    COVER_LINE_TRAVEL_MS,
+  );
   let cancelled = false;
   let frameId = 0;
-  let startTimestamp = 0;
-  let lastDrawnChars = -1;
+  let startTimestamp = null;
 
-  const renderProgress = (charCount) => {
-    drawCoverStatic(context, canvas, content);
-    let remaining = charCount;
+  const renderProgress = (elapsed) => {
+    drawCoverStatic(context, canvas, content, stampArtwork);
+    let pencilPose = null;
 
-    for (let index = 0; index < lines.length; index += 1) {
-      const line = lines[index];
-      if (remaining >= line.segments.length) {
+    for (let index = 0; index < schedule.length; index += 1) {
+      const event = schedule[index];
+      const line = lines[event.lineIndex];
+
+      if (elapsed >= event.startMs && elapsed < event.endMs) {
+        const lineProgress = (elapsed - event.startMs) / Math.max(1, event.endMs - event.startMs);
+        const characterPosition = smoothstep(lineProgress) * line.segments.length;
+        const charCount = Math.min(line.segments.length, Math.floor(characterPosition));
+        const pen = drawCoverTextLine(context, line, charCount);
+
+        // Let the tip glide into the next character while the actual copy
+        // keeps its established one-character-at-a-time reveal.
+        if (charCount < line.segments.length) {
+          const nextText = line.segments.slice(0, charCount + 1).join('');
+          const nextX = line.x + context.measureText(nextText).width + 6;
+          pen.x += (nextX - pen.x) * (characterPosition - charCount);
+        }
+
+        const press = Math.sin(Math.PI * lineProgress);
+        const linePhase = event.lineIndex * 0.9;
+        pencilPose = {
+          point: pen,
+          angle: COVER_PENCIL_BASE_ANGLE
+            - press * COVER_PENCIL_STRAIGHTEN
+            + COVER_PENCIL_WOBBLE * Math.sin(elapsed * 0.018 + linePhase),
+          pressure: 0.72 + 0.12 * (0.5 + 0.5 * Math.sin(elapsed * 0.012 + linePhase)) + press * 0.12,
+          press,
+          lift: 0,
+        };
+        break;
+      }
+
+      if (elapsed >= event.endMs) {
         drawCoverTextLine(context, line, line.segments.length);
-        remaining -= line.segments.length;
-      } else {
-        const pen = drawCoverTextLine(context, line, remaining);
-        drawWritingHand(context, pen.x, pen.y);
+
+        const nextEvent = schedule[index + 1];
+        if (nextEvent && elapsed < event.travelEndMs) {
+          const nextLine = lines[nextEvent.lineIndex];
+          const from = drawCoverTextLine(context, line, line.segments.length);
+          const to = drawCoverTextLine(context, nextLine, 0);
+          const travelProgress = (elapsed - event.endMs) / Math.max(1, event.travelEndMs - event.endMs);
+          const easedTravel = smoothstep(travelProgress);
+          const lift = Math.sin(Math.PI * travelProgress);
+          const linePhase = event.lineIndex * 0.9;
+          pencilPose = {
+            point: {
+              x: from.x + (to.x - from.x) * easedTravel,
+              y: from.y + (to.y - from.y) * easedTravel - lift * COVER_PENCIL_LIFT_HEIGHT,
+            },
+            angle: Math.atan2(to.y - from.y, to.x - from.x)
+              + lift * COVER_PENCIL_LIFT_ROTATION
+              + COVER_PENCIL_WOBBLE * Math.sin(elapsed * 0.018 + linePhase) * (1 - lift * 0.85),
+            pressure: 0.28,
+            lift,
+            press: 0,
+          };
+          break;
+        }
+      } else if (elapsed < event.startMs) {
         break;
       }
     }
 
+    if (pencilPose) drawWritingHand(context, pencilSprite, pencilPose);
     texture.needsUpdate = true;
   };
 
@@ -200,25 +542,20 @@ function startCoverWriting({ context, canvas, content, texture, onComplete }) {
       return;
     }
 
-    if (!startTimestamp) {
+    if (startTimestamp === null) {
       startTimestamp = timestamp;
     }
 
-    const progress = Math.min(1, (timestamp - startTimestamp) / COVER_WRITING_MS);
-    const charCount = Math.floor(progress * totalChars);
+    const elapsed = Math.min(COVER_WRITING_MS, timestamp - startTimestamp);
 
-    if (charCount !== lastDrawnChars) {
-      lastDrawnChars = charCount;
-      renderProgress(charCount);
-    }
-
-    if (progress >= 1) {
-      drawCoverCanvas(context, canvas, content); // final frame without the hand
+    if (elapsed >= COVER_WRITING_MS) {
+      drawCoverCanvas(context, canvas, content, stampArtwork); // final frame without the hand
       texture.needsUpdate = true;
       onComplete?.();
       return;
     }
 
+    renderProgress(elapsed);
     frameId = requestAnimationFrame(step);
   };
 
@@ -246,11 +583,13 @@ function createCoverTexture({
   canvas.height = 960;
   const context = canvas.getContext('2d');
   const content = { recipientName, senderName, year, headline, subtext };
+  const pencilSprite = skipWriting ? null : createWritingPencilSprite();
+  const stampArtwork = createForeverStampArtwork();
 
   if (skipWriting) {
-    drawCoverCanvas(context, canvas, content);
+    drawCoverCanvas(context, canvas, content, stampArtwork);
   } else {
-    drawCoverStatic(context, canvas, content);
+    drawCoverStatic(context, canvas, content, stampArtwork);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -260,6 +599,46 @@ function createCoverTexture({
   let disposed = false;
   let writingStarted = false;
   let cancelWriting = () => {};
+  let flapFrameId = 0;
+  let flapStartTimestamp = null;
+  let flapActive = false;
+  let pendingFlap = false;
+
+  const flapStamp = () => {
+    if (skipWriting || disposed) return;
+    if (flapActive) {
+      pendingFlap = true;
+      return;
+    }
+
+    flapActive = true;
+    flapStartTimestamp = null;
+    const step = (timestamp) => {
+      if (disposed) return;
+      if (flapStartTimestamp === null) flapStartTimestamp = timestamp;
+      const elapsed = timestamp - flapStartTimestamp;
+      const pose = getStampFlapPose(elapsed);
+      drawCoverCanvas(context, canvas, content, stampArtwork, pose);
+      texture.needsUpdate = true;
+
+      if (elapsed >= STAMP_FLAP_DURATION_MS) {
+        flapActive = false;
+        flapFrameId = 0;
+        flapStartTimestamp = null;
+        drawCoverCanvas(context, canvas, content, stampArtwork);
+        texture.needsUpdate = true;
+        if (pendingFlap) {
+          pendingFlap = false;
+          flapStamp();
+        }
+        return;
+      }
+
+      flapFrameId = requestAnimationFrame(step);
+    };
+
+    flapFrameId = requestAnimationFrame(step);
+  };
 
   const startWriting = () => {
     if (writingStarted || disposed) {
@@ -269,11 +648,24 @@ function createCoverTexture({
     writingStarted = true;
 
     if (skipWriting) {
+      drawCoverCanvas(context, canvas, content, stampArtwork);
+      texture.needsUpdate = true;
       onWriteComplete?.();
       return;
     }
 
-    cancelWriting = startCoverWriting({ context, canvas, content, texture, onComplete: onWriteComplete });
+    pencilSprite.ready.then((spriteReady) => {
+      if (disposed) return;
+      cancelWriting = startCoverWriting({
+        context,
+        canvas,
+        content,
+        texture,
+        stampArtwork,
+        pencilSprite: spriteReady ? pencilSprite.canvas : null,
+        onComplete: onWriteComplete,
+      });
+    });
   };
 
   // Absorbs the old fonts.ready redraw: writing only starts once font
@@ -290,6 +682,7 @@ function createCoverTexture({
 
   return {
     texture,
+    flapStamp,
     dispose() {
       if (disposed) {
         return;
@@ -297,6 +690,9 @@ function createCoverTexture({
 
       disposed = true;
       cancelWriting();
+      if (flapFrameId) cancelAnimationFrame(flapFrameId);
+      flapActive = false;
+      pendingFlap = false;
       texture.dispose();
     },
   };
@@ -565,6 +961,7 @@ export default function PreloaderCanvas({
     flipComplete: false,
     openStarted: false,
     openComplete: false,
+    stampOpenFlapStarted: false,
   });
   const sceneGenerationRef = useRef(0);
   const [sceneGeneration, setSceneGeneration] = useState(1);
@@ -634,6 +1031,7 @@ export default function PreloaderCanvas({
         if (!currentState) {
           return;
         }
+        if (!reducedMotionRef.current) currentState.coverStampFlap?.();
         currentState.coverWriteDone = true;
         const firePendingSealReady = currentState.pendingSealFire;
         currentState.pendingSealFire = null;
@@ -735,6 +1133,7 @@ export default function PreloaderCanvas({
       didOpen: lifecycle.openStarted || lifecycle.openComplete,
       openComplete: lifecycle.openComplete,
       coverWriteDone: false,
+      coverStampFlap: coverTexture.flapStamp,
       pendingSealFire: null,
       resetDrag,
     };
@@ -1170,6 +1569,10 @@ export default function PreloaderCanvas({
       return undefined;
     }
 
+    if (!lifecycle.stampOpenFlapStarted) {
+      lifecycle.stampOpenFlapStarted = true;
+      state.coverStampFlap?.();
+    }
     state.didOpen = true;
     lifecycle.openStarted = true;
 
