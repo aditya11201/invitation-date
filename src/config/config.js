@@ -136,7 +136,7 @@ export const invitationConfig = {
   },
 
   surprise: {
-    gif: "/assets/gifs/surprise.gif",
+    gif: "/assets/gifs/us-couple.webp",
     title: "Yay, it's a date! 💗",
     subtitle: "Now I actually can't wait for this day 😭💗",
     caption: "Official Date Confirmation Unlocked!"

@@ -377,33 +377,40 @@ function createWritingPencilSprite() {
   canvas.width = 96;
   canvas.height = 520;
   const context = canvas.getContext('2d');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="260" viewBox="0 0 48 260">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="260" viewBox="60 10 120 580">
     <defs>
-      <linearGradient id="silver-ferrule" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#837776"/>
-        <stop offset=".22" stop-color="#c9c3c1"/>
-        <stop offset=".5" stop-color="#ffffff"/>
-        <stop offset=".78" stop-color="#c9c3c1"/>
-        <stop offset="1" stop-color="#837776"/>
+      <linearGradient id="eraserGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#f8bbd0"/>
+        <stop offset=".5" stop-color="#f48fb1"/>
+        <stop offset="1" stop-color="#ec407a"/>
       </linearGradient>
-      <linearGradient id="yellow-facets" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#a87428"/>
-        <stop offset=".2" stop-color="#f3c64d"/>
-        <stop offset=".5" stop-color="#fff0a2"/>
-        <stop offset=".8" stop-color="#f3c64d"/>
-        <stop offset="1" stop-color="#a87428"/>
+      <linearGradient id="ferruleGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#eceff1"/>
+        <stop offset=".5" stop-color="#b0bec5"/>
+        <stop offset="1" stop-color="#90a4ae"/>
+      </linearGradient>
+      <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ffe082"/>
+        <stop offset=".5" stop-color="#ffd54f"/>
+        <stop offset="1" stop-color="#f9a825"/>
+      </linearGradient>
+      <linearGradient id="woodGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#f3d9b1"/>
+        <stop offset=".5" stop-color="#e8c39e"/>
+        <stop offset="1" stop-color="#d2a26f"/>
       </linearGradient>
     </defs>
-    <path d="M16 60h16l3 7v121l-5 9H18l-5-9V67z" fill="url(#yellow-facets)" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M18 69v113M30 69v113" fill="none" stroke="#a87428" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M24 68v123" fill="none" stroke="#fff0a2" stroke-width="4" stroke-linecap="round"/>
-    <path d="M13 47h22v19H13z" fill="url(#silver-ferrule)" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M17 54h14M17 60h14" fill="none" stroke="#837776" stroke-width="2" stroke-linecap="round"/>
-    <path d="M13 188h22l-11 49z" fill="#e9c98b" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M17 194c3 10 4 23 6 38M31 194c-3 10-4 23-6 38" fill="none" stroke="#a87428" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M20 229h8l-4 29z" fill="#212121" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M13 49V23c0-8 5-13 11-13s11 5 11 13v26z" fill="#e98f9d" stroke="#4a4038" stroke-width="5" stroke-linejoin="round"/>
-    <ellipse cx="20" cy="22" rx="2.5" ry="5" fill="#ffffff" opacity=".9"/>
+    <path d="M78 94 V54 Q78 22 120 22 Q162 22 162 54 V94 Z" fill="url(#eraserGrad)" stroke="#3e2723" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <ellipse cx="101" cy="50" rx="8" ry="15" fill="#ffffff" opacity=".45" transform="rotate(-14 101 50)"/>
+    <rect x="78" y="92" width="84" height="58" fill="url(#ferruleGrad)" stroke="#3e2723" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M78 107 H162 M78 126 H162" fill="none" stroke="#78909c" stroke-width="5" stroke-linecap="round"/>
+    <rect x="78" y="148" width="84" height="280" fill="url(#bodyGrad)" stroke="#3e2723" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M99 148 V428" fill="none" stroke="#f9a825" stroke-width="5" stroke-linecap="round"/>
+    <path d="M120 148 V428" fill="none" stroke="#fff59d" stroke-width="4" stroke-linecap="round"/>
+    <path d="M141 148 V428" fill="none" stroke="#f57f17" stroke-width="4" stroke-linecap="round"/>
+    <path d="M78 426 H162 L133 534 H107 Z" fill="url(#woodGrad)" stroke="#3e2723" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M100 440 C104 470 106 500 108 528 M140 440 C136 470 134 500 132 528" fill="none" stroke="#c89a6b" stroke-width="3" stroke-linecap="round"/>
+    <path d="M107 532 H133 L120 578 Z" fill="#212121" stroke="#3e2723" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
   </svg>`;
   const image = new Image();
   const ready = new Promise((resolve) => {
