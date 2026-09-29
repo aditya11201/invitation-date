@@ -43,7 +43,7 @@ Transforms asking your partner on a date into a cinematic, personal, and unforge
 
 ```bash
 # Clone repository and enter directory
-cd invitation-date
+cd unsent
 
 # Install dependencies
 npm install
@@ -162,7 +162,7 @@ Deployment is automatic via GitHub Actions:
 - **Trigger:** push / merge to `main` (or manual via `workflow_dispatch`)
 - **Workflow:** `.github/workflows/deploy.yml`
 - **Pipeline:** `npm ci` → `npm test` → `npm run build` → deploy `dist/` to GitHub Pages (official `actions/deploy-pages`)
-- **Production URL:** `https://aditya11201.github.io/invitation-date/`
+- **Production URL:** `https://aditya11201.github.io/unsent/`
 
 ### One-time repository setting (GitHub UI)
 
